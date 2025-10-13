@@ -6,17 +6,17 @@ from app.core.database import get_db
 from . import models
 from .schemas import PostCreate, PostOut, PostUpdate
 
-router = APIRouter()
+router = APIRouter(prefix="/posts")
 
 
-@router.get("/posts", response_model=dict[str, list[PostOut]])
+@router.get("/", response_model=dict[str, list[PostOut]])
 async def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return {"data": posts}
 
 
 @router.post(
-    "/posts",
+    "/",
     status_code=status.HTTP_201_CREATED,
     response_model=dict[str, PostOut],
 )
@@ -28,7 +28,7 @@ async def create_post(post_data: PostCreate, db: Session = Depends(get_db)):
     return {"data": new_post}
 
 
-@router.get("/posts/{post_id}", response_model=dict[str, PostOut])
+@router.get("/{post_id}", response_model=dict[str, PostOut])
 async def get_post_by_id(post_id: str, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not post:
@@ -37,7 +37,7 @@ async def get_post_by_id(post_id: str, db: Session = Depends(get_db)):
 
 
 @router.patch(
-    "/posts/{post_id}",
+    "/{post_id}",
     response_model=dict[str, PostOut],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -55,7 +55,7 @@ async def update_post(
 
 
 @router.delete(
-    "/posts/{post_id}", response_model=None, status_code=status.HTTP_204_NO_CONTENT
+    "/{post_id}", response_model=None, status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_post(post_id: str, db: Session = Depends(get_db)) -> None:
     db.query(models.Post).filter(models.Post.id == post_id).delete()

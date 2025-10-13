@@ -7,11 +7,11 @@ from . import models
 from .schemas import UserCreate, UserOut
 from .utils import hash_password
 
-router = APIRouter()
+router = APIRouter(prefix="/users")
 
 
 @router.post(
-    "/users",
+    "/",
     status_code=status.HTTP_201_CREATED,
     response_model=dict[str, UserOut],
 )
@@ -22,7 +22,6 @@ def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
             detail=f"User with email {user_data.email} already exists",
         )
 
-    # Replace plain password with hashed password
     user_data.password = hash_password(user_data.password)
 
     new_user = models.User(**user_data.model_dump())
@@ -33,7 +32,7 @@ def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
     return {"data": new_user}
 
 
-@router.get("/users/{user_id}", response_model=dict[str, UserOut])
+@router.get("/{user_id}", response_model=dict[str, UserOut])
 def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
