@@ -6,3 +6,8 @@ Content-Type: application/json
     "email": "user@example.com",
     "password": "password123"
 }
+
+### Get user details
+GET http://localhost:8000/users/ed67f03a-69b2-46e4-8360-b93705321932
+
+###

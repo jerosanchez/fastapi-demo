@@ -92,6 +92,14 @@ def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
     return {"data": new_user}
 
 
+@router.get("/users/{user_id}", response_model=dict[str, UserOut])
+def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        _report_not_found(user_id)
+    return {"data": user}
+
+
 ### Helper functions
 
 
