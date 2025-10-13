@@ -15,6 +15,9 @@ class PostResponse(PostSchemaBase):
     id: UUID
     created_at: datetime
 
+    class Config:
+        orm_mode = True
+
 
 class PostCreate(PostSchemaBase):
     pass

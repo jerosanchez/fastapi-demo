@@ -29,7 +29,7 @@ Content-Type: application/json
 }
 
 ### Delete post by id
-DELETE http://localhost:8000/posts/5cd60fb2-8645-4766-ac41-c0776bf33911
+DELETE http://localhost:8000/posts/823fef03-a462-4823-a9d8-720f739a05aa
 Accept: application/json
 
 ###
