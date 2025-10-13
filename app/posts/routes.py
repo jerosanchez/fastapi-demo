@@ -6,7 +6,7 @@ from app.core.database import get_db
 from . import models
 from .schemas import PostCreate, PostOut, PostUpdate
 
-router = APIRouter(prefix="/posts")
+router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
 @router.get("/", response_model=dict[str, list[PostOut]])

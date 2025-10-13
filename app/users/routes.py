@@ -7,7 +7,7 @@ from . import models
 from .schemas import UserCreate, UserOut
 from .utils import hash_password
 
-router = APIRouter(prefix="/users")
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post(
