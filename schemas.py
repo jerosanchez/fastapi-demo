@@ -1,5 +1,5 @@
-import random
-from uuid import UUID, uuid4
+from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -11,8 +11,9 @@ class PostSchemaBase(BaseModel):
     rating: int | None = None
 
 
-class PostOut(PostSchemaBase):
+class PostResponse(PostSchemaBase):
     id: UUID
+    created_at: datetime
 
 
 class PostCreate(PostSchemaBase):
