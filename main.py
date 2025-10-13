@@ -2,11 +2,15 @@ from uuid import UUID, uuid4
 
 from fastapi import FastAPI, HTTPException, status
 
+import models
+from database import engine
 from schemas import PostCreate, PostUpdate, create_random_posts
 
 app = FastAPI()
 
 post_repository = create_random_posts(5)
+
+models.Base.metadata.create_all(bind=engine)
 
 
 @app.get("/posts")
