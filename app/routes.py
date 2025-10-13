@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-import models
-import utils
-from database import get_db
-from schemas import PostCreate, PostOut, PostUpdate, UserCreate, UserOut
+import app.models as models
+import app.utils as utils
+from app.database import get_db
+from app.schemas import PostCreate, PostOut, PostUpdate, UserCreate, UserOut
 
 router = APIRouter()
 
