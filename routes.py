@@ -2,13 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 import models
+import utils
 from database import get_db
-from schemas import PostCreate, PostResponse, PostUpdate
+from schemas import PostCreate, PostOut, PostUpdate, UserCreate, UserOut
 
 router = APIRouter()
 
 
-@router.get("/posts", response_model=dict[str, list[PostResponse]])
+### Posts routes
+
+
+@router.get("/posts", response_model=dict[str, list[PostOut]])
 async def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return {"data": posts}
@@ -17,7 +21,7 @@ async def get_posts(db: Session = Depends(get_db)):
 @router.post(
     "/posts",
     status_code=status.HTTP_201_CREATED,
-    response_model=dict[str, PostResponse],
+    response_model=dict[str, PostOut],
 )
 async def create_post(post_data: PostCreate, db: Session = Depends(get_db)):
     new_post = models.Post(**post_data.model_dump())
@@ -27,7 +31,7 @@ async def create_post(post_data: PostCreate, db: Session = Depends(get_db)):
     return {"data": new_post}
 
 
-@router.get("/posts/{post_id}", response_model=dict[str, PostResponse])
+@router.get("/posts/{post_id}", response_model=dict[str, PostOut])
 async def get_post_by_id(post_id: str, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not post:
@@ -37,7 +41,7 @@ async def get_post_by_id(post_id: str, db: Session = Depends(get_db)):
 
 @router.patch(
     "/posts/{post_id}",
-    response_model=dict[str, PostResponse],
+    response_model=dict[str, PostOut],
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def update_post(
@@ -60,6 +64,35 @@ async def delete_post(post_id: str, db: Session = Depends(get_db)) -> None:
     db.query(models.Post).filter(models.Post.id == post_id).delete()
     db.commit()
     return
+
+
+### Users routes
+
+
+@router.post(
+    "/users",
+    status_code=status.HTTP_201_CREATED,
+    response_model=dict[str, UserOut],
+)
+def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
+    if db.query(models.User).filter(models.User.email == user_data.email).first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User with email {user_data.email} already exists",
+        )
+
+    # Replace plain password with hashed password
+    user_data.password = utils.hash_password(user_data.password)
+
+    new_user = models.User(**user_data.model_dump())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {"data": new_user}
+
+
+### Helper functions
 
 
 def _report_not_found(id: str):
