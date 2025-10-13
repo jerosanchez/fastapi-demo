@@ -14,11 +14,11 @@ Content-Type: application/json
 }
 
 ### Get post by id
-GET http://localhost:8000/posts/adc9a78f-8598-46d9-8702-7bfb55b6208
+GET http://localhost:8000/posts/bc262ac5-166a-4150-a64c-2e40b06e613e
 Accept: application/json
 
 ### Update post by id
-PATCH http://localhost:8000/posts/eb2b0daf-1173-4f3f-b6d1-2d4e06793f60
+PATCH http://localhost:8000/posts/bc262ac5-166a-4150-a64c-2e40b06e613e
 Content-Type: application/json  
 
 {
@@ -29,7 +29,7 @@ Content-Type: application/json
 }
 
 ### Delete post by id
-DELETE http://localhost:8000/posts/de343566-2bb6-4ac4-bacf-eaf0d8acb657
+DELETE http://localhost:8000/posts/5cd60fb2-8645-4766-ac41-c0776bf33911
 Accept: application/json
 
 ###
