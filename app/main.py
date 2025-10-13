@@ -1,13 +1,15 @@
 from fastapi import FastAPI
 
-import app.models as models
+import app.posts.models as posts_models
+import app.users.models as users_models
 from app.database import engine
 from app.posts.routes import router as posts_router
-from app.routes import router
+from app.users.routes import router as users_router
 
 app = FastAPI()
 
-models.Base.metadata.create_all(bind=engine)
-
-app.include_router(router)
+posts_models.Base.metadata.create_all(bind=engine)
 app.include_router(posts_router)
+
+users_models.Base.metadata.create_all(bind=engine)
+app.include_router(users_router)
