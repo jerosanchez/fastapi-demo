@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-import app.users.models as models
-import app.users.utils as utils
 from app.core.database import get_db
-from app.users.schemas import UserCreate, UserOut
+
+from . import models
+from .schemas import UserCreate, UserOut
+from .utils import hash_password
 
 router = APIRouter()
 
@@ -22,7 +23,7 @@ def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
         )
 
     # Replace plain password with hashed password
-    user_data.password = utils.hash_password(user_data.password)
+    user_data.password = hash_password(user_data.password)
 
     new_user = models.User(**user_data.model_dump())
     db.add(new_user)
