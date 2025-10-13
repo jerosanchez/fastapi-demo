@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 
-from app.database import Base
+from app.core.database import Base
 
 
 class User(Base):

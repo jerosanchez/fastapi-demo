@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 import app.users.models as models
 import app.users.utils as utils
-from app.database import get_db
+from app.core.database import get_db
 from app.users.schemas import UserCreate, UserOut
 
 router = APIRouter()
