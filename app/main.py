@@ -5,6 +5,6 @@ from app.core.database import engine
 
 app = FastAPI()
 
-posts.init_app(app, engine)
-users.init_app(app, engine)
-auth.init_app(app, engine)
+posts.init_service(app, engine)
+users.init_service(app, engine)
+auth.init_service(app, engine)
