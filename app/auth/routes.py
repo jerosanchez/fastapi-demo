@@ -4,10 +4,10 @@ from sqlalchemy.orm import Session
 
 from app.auth.oauth2 import create_access_token
 from app.core.database import get_db
-from app.users import models
+from app.users.models import User
 from app.utils.passwords import verify_password
 
-from .schemas import Token
+from .schemas import Token, TokenPayload
 
 router = APIRouter(tags=["Authentication"])
 
@@ -16,9 +16,7 @@ router = APIRouter(tags=["Authentication"])
 def login(
     credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
-    user = (
-        db.query(models.User).filter(models.User.email == credentials.username).first()
-    )
+    user = db.query(User).filter(User.email == credentials.username).first()
 
     if not user:
         _report_invalid_login()
@@ -26,7 +24,7 @@ def login(
     if not verify_password(credentials.password, user.password):
         _report_invalid_login()
 
-    access_token = create_access_token(data={"user_id": user.id})
+    access_token = create_access_token(data=TokenPayload(user_id=user.id))
 
     return Token(access_token=access_token, token_type="bearer")
 

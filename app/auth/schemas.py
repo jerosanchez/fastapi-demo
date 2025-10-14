@@ -12,5 +12,5 @@ class Token(BaseModel):
     token_type: str
 
 
-class TokenData(BaseModel):
+class TokenPayload(BaseModel):
     user_id: str | None = None

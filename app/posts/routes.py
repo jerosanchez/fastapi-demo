@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 
 from app.auth import oauth2
 from app.core.database import get_db
+from app.users.models import User
 
-from . import models
+from .models import Post
 from .schemas import PostCreate, PostOut, PostUpdate
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 
 @router.get("/", response_model=dict[str, list[PostOut]])
 async def get_posts(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
+    posts = db.query(Post).all()
     return {"data": posts}
 
 
@@ -24,9 +25,9 @@ async def get_posts(db: Session = Depends(get_db)):
 async def create_post(
     post_data: PostCreate,
     db: Session = Depends(get_db),
-    user: dict = Depends(oauth2.get_current_user),
+    current_user: User = Depends(oauth2.get_current_user),
 ):
-    new_post = models.Post(**post_data.model_dump())
+    new_post = Post(**post_data.model_dump())
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
@@ -35,7 +36,7 @@ async def create_post(
 
 @router.get("/{post_id}", response_model=dict[str, PostOut])
 async def get_post_by_id(post_id: str, db: Session = Depends(get_db)):
-    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         _report_not_found(post_id)
     return {"data": post}
@@ -50,9 +51,9 @@ async def update_post(
     post_id: str,
     post_data: PostUpdate,
     db: Session = Depends(get_db),
-    user: dict = Depends(oauth2.get_current_user),
+    current_user: User = Depends(oauth2.get_current_user),
 ):
-    post_query = db.query(models.Post).filter(models.Post.id == post_id)
+    post_query = db.query(Post).filter(Post.id == post_id)
     post = post_query.first()
     if not post:
         _report_not_found(post_id)
@@ -68,9 +69,9 @@ async def update_post(
 async def delete_post(
     post_id: str,
     db: Session = Depends(get_db),
-    user: dict = Depends(oauth2.get_current_user),
+    current_user: User = Depends(oauth2.get_current_user),
 ) -> None:
-    db.query(models.Post).filter(models.Post.id == post_id).delete()
+    db.query(Post).filter(Post.id == post_id).delete()
     db.commit()
     return
 
