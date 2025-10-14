@@ -24,7 +24,7 @@ def login(
     if not verify_password(credentials.password, user.password):
         _report_invalid_login()
 
-    access_token = create_access_token(data=TokenPayload(user_id=user.id))
+    access_token = create_access_token(payload=TokenPayload(user_id=user.id))
 
     return Token(access_token=access_token, token_type="bearer")
 

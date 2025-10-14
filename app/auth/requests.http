@@ -2,4 +2,4 @@
 POST http://localhost:8000/login
 Content-Type: application/x-www-form-urlencoded
 
-username=user@example.com&password=password123
+username=john.doe@example.com&password=password123
