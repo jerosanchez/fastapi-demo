@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from app.users.schemas import UserOut
+
 
 class PostSchemaBase(BaseModel):
     title: str
@@ -14,7 +16,7 @@ class PostSchemaBase(BaseModel):
 class PostOut(PostSchemaBase):
     id: UUID
     created_at: datetime
-    owner_id: UUID
+    owner: UserOut
 
     class Config:
         from_attributes = True

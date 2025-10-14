@@ -1,6 +1,7 @@
 import uuid
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 
 from app.core.database import Base
@@ -18,3 +19,6 @@ class Post(Base):
     published = Column(Boolean, server_default="TRUE")
     rating = Column(Integer, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default="now()")
+
+    # Retrieve the user who owns this post
+    owner = relationship("User")
