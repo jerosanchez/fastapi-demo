@@ -7,12 +7,12 @@ from app.core.database import get_db
 from app.users import models
 from app.utils.passwords import verify_password
 
-from .schemas import UserLogin
+from .schemas import Token
 
 router = APIRouter(tags=["Authentication"])
 
 
-@router.post("/login", status_code=status.HTTP_200_OK)
+@router.post("/login", status_code=status.HTTP_200_OK, response_model=Token)
 def login(
     credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
@@ -28,7 +28,7 @@ def login(
 
     access_token = create_access_token(data={"user_id": user.id})
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return Token(access_token=access_token, token_type="bearer")
 
 
 # Helper functions
