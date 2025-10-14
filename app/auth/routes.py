@@ -1,0 +1,32 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.auth.schemas import UserLogin
+from app.core.database import get_db
+from app.users import models
+from app.users.utils import verify_password
+
+router = APIRouter(tags=["Authentication"])
+
+
+@router.post("/login", status_code=status.HTTP_200_OK)
+def login(credentials: UserLogin, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.email == credentials.email).first()
+
+    if not user:
+        _report_invalid_login()
+
+    if not verify_password(credentials.password, user.password):
+        _report_invalid_login()
+
+    # TODO: Return JWT token upon successful login
+    return {"message": "Login successful"}
+
+
+# Helper functions
+
+
+def _report_invalid_login():
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
+    )
