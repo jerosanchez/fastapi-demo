@@ -5,7 +5,7 @@ from fastapi.params import Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
-from app.users import schemas
+from . import schemas
 
 # TODO: Change SECRET_KEY to a secure random value and keep it secret
 # To get a string like this run: openssl rand -hex 32
@@ -40,7 +40,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
 
 def _verify_access_token(token: str, credentials_exception) -> dict:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
         user_id = payload.get("user_id")
         if user_id is None:

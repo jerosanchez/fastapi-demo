@@ -36,5 +36,5 @@ def login(
 
 def _report_invalid_login():
     raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
+        status_code=status.HTTP_403_FORBIDDEN, detail="Invalid email or password"
     )
