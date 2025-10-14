@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.auth import oauth2
+from app.core import config
+from app.core.config import settings
 from app.core.database import get_db
 from app.users.models import User
 
@@ -10,19 +12,19 @@ from .schemas import PostCreate, PostOut, PostUpdate
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
-# TODO: Move to config
-MAX_PAGE_SIZE = 20
-
 
 @router.get("/", response_model=dict[str, list[PostOut]])
 async def get_posts(
-    page: int = 1, size: int = 5, search: str = None, db: Session = Depends(get_db)
+    page: int = 1,
+    size: int = settings.default_page_size,
+    search: str = None,
+    db: Session = Depends(get_db),
 ):
     if page < 1 or size < 1:
         _report_bad_request("Page and size must be positive integers")
 
-    if size > MAX_PAGE_SIZE:
-        _report_bad_request(f"Size must not exceed {MAX_PAGE_SIZE}")
+    if size > settings.max_page_size:
+        _report_bad_request(f"Size must not exceed {settings.max_page_size}")
 
     post_query = db.query(Post)
 

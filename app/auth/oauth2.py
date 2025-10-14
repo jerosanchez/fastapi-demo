@@ -6,16 +6,11 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.users.models import User
 
 from .schemas import TokenPayload
-
-# TODO: Change SECRET_KEY to a secure random value and keep it secret
-# To get a string like this run: openssl rand -hex 32
-SECRET_KEY = "7bdb4bcf0b01f00ca206693965b29145611d9419563630525dc848024c38fc08"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -23,11 +18,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 def create_access_token(payload: TokenPayload) -> str:
     payload = payload.model_dump()
     expire_time = datetime.now(timezone.utc) + timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+        minutes=settings.oauth_token_ttl
     )
     payload.update({"exp": expire_time})
 
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(
+        payload, settings.oauth_hash_key, algorithm=settings.oauth_algorithm
+    )
 
 
 def get_current_user(
@@ -54,7 +51,9 @@ def get_current_user(
 
 def _verify_access_token(token: str, credentials_exception) -> TokenPayload:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            token, config.oauth_hash_key, algorithms=[config.oauth_algorithm]
+        )
 
         user_id = payload.get("user_id")
         if user_id is None:
