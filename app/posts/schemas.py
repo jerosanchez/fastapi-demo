@@ -14,6 +14,7 @@ class PostSchemaBase(BaseModel):
 class PostOut(PostSchemaBase):
     id: UUID
     created_at: datetime
+    owner_id: UUID
 
     class Config:
         from_attributes = True

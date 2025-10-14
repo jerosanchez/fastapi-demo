@@ -13,8 +13,8 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 
 @router.get("/", response_model=dict[str, list[PostOut]])
 async def get_posts(db: Session = Depends(get_db)):
-    posts = db.query(Post).all()
-    return {"data": posts}
+    post_query = db.query(Post)
+    return {"data": post_query.all()}
 
 
 @router.post(
@@ -27,10 +27,12 @@ async def create_post(
     db: Session = Depends(get_db),
     current_user: User = Depends(oauth2.get_current_user),
 ):
-    new_post = Post(**post_data.model_dump())
+    new_post = Post(owner_id=current_user.id, **post_data.model_dump())
+
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
+
     return {"data": new_post}
 
 
@@ -55,8 +57,13 @@ async def update_post(
 ):
     post_query = db.query(Post).filter(Post.id == post_id)
     post = post_query.first()
+
     if not post:
         _report_not_found(post_id)
+
+    if post.owner_id != current_user.id:
+        _report_forbidden()
+
     post_query.update(post_data.model_dump(exclude_unset=True))
     db.commit()
     db.refresh(post)
@@ -71,8 +78,18 @@ async def delete_post(
     db: Session = Depends(get_db),
     current_user: User = Depends(oauth2.get_current_user),
 ) -> None:
-    db.query(Post).filter(Post.id == post_id).delete()
+    post_query = db.query(Post).filter(Post.id == post_id)
+    post = post_query.first()
+
+    if not post:
+        _report_not_found(post_id)
+
+    if post.owner_id != current_user.id:
+        _report_forbidden()
+
+    post_query.delete()
     db.commit()
+
     return
 
 
@@ -82,4 +99,11 @@ async def delete_post(
 def _report_not_found(id: str):
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail=f"Post not found, id: {id}"
+    )
+
+
+def _report_forbidden():
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Not authorized to perform requested action",
     )
