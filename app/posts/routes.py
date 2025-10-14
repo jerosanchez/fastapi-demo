@@ -10,11 +10,27 @@ from .schemas import PostCreate, PostOut, PostUpdate
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
+# TODO: Move to config
+MAX_PAGE_SIZE = 20
+
 
 @router.get("/", response_model=dict[str, list[PostOut]])
-async def get_posts(db: Session = Depends(get_db)):
+async def get_posts(
+    page: int = 1, size: int = 5, search: str = None, db: Session = Depends(get_db)
+):
+    if page < 1 or size < 1:
+        _report_bad_request("Page and size must be positive integers")
+
+    if size > MAX_PAGE_SIZE:
+        _report_bad_request(f"Size must not exceed {MAX_PAGE_SIZE}")
+
     post_query = db.query(Post)
-    return {"data": post_query.all()}
+
+    if search:
+        # Search is case insensitive
+        post_query = post_query.filter(Post.title.ilike(f"%{search}%"))
+
+    return {"data": post_query.offset((page - 1) * size).limit(size).all()}
 
 
 @router.post(
@@ -94,6 +110,10 @@ async def delete_post(
 
 
 ### Helper functions
+
+
+def _report_bad_request(detail: str):
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
 
 def _report_not_found(id: str):

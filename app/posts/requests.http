@@ -2,7 +2,7 @@
 @POST_ID = e2f1c3b4-5d6e-7a8b-9c0d-1e2f3a4b5c6d
 
 ### Get existing posts
-GET http://localhost:8000/posts
+GET http://localhost:8000/posts?page=1&size=3&search=docker
 Accept: application/json
 
 ### Create new post
