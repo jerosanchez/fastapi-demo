@@ -2,9 +2,11 @@
 --- Create SQL schema and sample data for a blogging platform with users and posts. 
 --- Each user should have an id, email, password, created_at timestamp, and is_active boolean. 
 --- Each post should have an id, owner_id (foreign key to users), title, content, published boolean, rating integer, and created_at timestamp.
+--- Each vote should have a post_id and user_id as composite primary key, both foreign keys with cascade delete.
 --- `id` fields should be realistic UUID strings.
 --- Include at least 3 users and 12 posts with realistic data related to AI and FastAPI.
 
+DROP TABLE IF EXISTS votes;
 DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS users;
 
@@ -34,6 +36,14 @@ CREATE TABLE posts (
 );
 
 CREATE INDEX ix_posts_id ON public.posts USING btree (id);
+
+CREATE TABLE votes (
+    post_id varchar NOT NULL,
+    user_id varchar NOT NULL,
+    PRIMARY KEY (post_id, user_id),
+    CONSTRAINT votes_post_id_fkey FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE,
+    CONSTRAINT votes_user_id_fkey FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
 
 -- Sample data
 -- All hashed passwords correspond to "password123"
@@ -191,3 +201,24 @@ VALUES
     5,
     '2025-09-15T21:10:00Z'
 );
+
+-- Sample votes data
+INSERT INTO votes (post_id, user_id) VALUES
+    -- John's posts getting votes
+    ('e2f1c3b4-5d6e-7a8b-9c0d-1e2f3a4b5c6d', 'c4d2e3f1-5b6a-7c8d-9e0f-2b3c4d5e6f7a'), -- Alice votes on John's FastAPI post
+    ('e2f1c3b4-5d6e-7a8b-9c0d-1e2f3a4b5c6d', 'd5e6f7a8-9b0c-1d2e-3f4a-5b6c7d8e9f0a'), -- Bob votes on John's FastAPI post
+    ('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'c4d2e3f1-5b6a-7c8d-9e0f-2b3c4d5e6f7a'), -- Alice votes on John's Neural Networks post
+    
+    -- Alice's posts getting votes
+    ('b7c8d9e0-1f2a-3b4c-5d6e-7f8a9b0c1d2e', 'b3c1a7e2-4f8d-4a1e-9c2d-5e6f7a8b9c0d'), -- John votes on Alice's Chatbots post
+    ('b7c8d9e0-1f2a-3b4c-5d6e-7f8a9b0c1d2e', 'd5e6f7a8-9b0c-1d2e-3f4a-5b6c7d8e9f0a'), -- Bob votes on Alice's Chatbots post
+    ('c8d9e0f1-2a3b-4c5d-6e7f-8a9b0c1d2e3f', 'b3c1a7e2-4f8d-4a1e-9c2d-5e6f7a8b9c0d'), -- John votes on Alice's Transformers post
+    ('d9e0f1a2-3b4c-5d6e-7f8a-9b0c1d2e3f4a', 'd5e6f7a8-9b0c-1d2e-3f4a-5b6c7d8e9f0a'), -- Bob votes on Alice's FastAPI/Uvicorn post
+    ('f1a2b3c4-5d6e-7f8a-9b0c-1d2e3f4a5b6c', 'b3c1a7e2-4f8d-4a1e-9c2d-5e6f7a8b9c0d'), -- John votes on Alice's Data Labeling post
+    
+    -- Bob's posts getting votes
+    ('a2b3c4d5-e6f7-8a9b-0c1d-2e3f4a5b6c7d', 'b3c1a7e2-4f8d-4a1e-9c2d-5e6f7a8b9c0d'), -- John votes on Bob's PyTorch post
+    ('a2b3c4d5-e6f7-8a9b-0c1d-2e3f4a5b6c7d', 'c4d2e3f1-5b6a-7c8d-9e0f-2b3c4d5e6f7a'), -- Alice votes on Bob's PyTorch post
+    ('b3c4d5e6-f7a8-9b0c-1d2e-3f4a5b6c7d8e', 'c4d2e3f1-5b6a-7c8d-9e0f-2b3c4d5e6f7a'), -- Alice votes on Bob's Inference Speed post
+    ('d5e6f7a8-b9c0-1d2e-3f4a-5b6c7d8e9f0b', 'b3c1a7e2-4f8d-4a1e-9c2d-5e6f7a8b9c0d'), -- John votes on Bob's GPU post
+    ('d5e6f7a8-b9c0-1d2e-3f4a-5b6c7d8e9f0b', 'c4d2e3f1-5b6a-7c8d-9e0f-2b3c4d5e6f7a'); -- Alice votes on Bob's GPU post
