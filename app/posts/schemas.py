@@ -22,6 +22,11 @@ class PostOut(PostSchemaBase):
         from_attributes = True
 
 
+class PostWithVotes(BaseModel):
+    Post: PostOut
+    votes: int
+
+
 class PostCreate(PostSchemaBase):
     pass
 

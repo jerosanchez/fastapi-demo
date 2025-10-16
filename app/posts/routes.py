@@ -1,19 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.auth import oauth2
-from app.core import config
 from app.core.config import settings
 from app.core.database import get_db
 from app.users.models import User
+from app.votes.models import Vote
 
 from .models import Post
-from .schemas import PostCreate, PostOut, PostUpdate
+from .schemas import PostCreate, PostOut, PostUpdate, PostWithVotes
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
-@router.get("/", response_model=dict[str, list[PostOut]])
+@router.get("/", response_model=dict[str, list[PostWithVotes]])
 async def get_posts(
     page: int = 1,
     size: int = settings.default_page_size,
@@ -26,13 +27,13 @@ async def get_posts(
     if size > settings.max_page_size:
         _report_bad_request(f"Size must not exceed {settings.max_page_size}")
 
-    post_query = db.query(Post)
+    query = _fetch_posts_with_votes_query(db)
 
     if search:
         # Search is case insensitive
-        post_query = post_query.filter(Post.title.ilike(f"%{search}%"))
+        query = query.filter(Post.title.ilike(f"%{search}%"))
 
-    return {"data": post_query.offset((page - 1) * size).limit(size).all()}
+    return {"data": query.offset((page - 1) * size).limit(size).all()}
 
 
 @router.post(
@@ -54,11 +55,12 @@ async def create_post(
     return {"data": new_post}
 
 
-@router.get("/{post_id}", response_model=dict[str, PostOut])
+@router.get("/{post_id}", response_model=dict[str, PostWithVotes])
 async def get_post_by_id(post_id: str, db: Session = Depends(get_db)):
-    post = db.query(Post).filter(Post.id == post_id).first()
+    post = _fetch_posts_with_votes_query(db).filter(Post.id == post_id).first()
     if not post:
         _report_not_found(post_id)
+
     return {"data": post}
 
 
@@ -128,4 +130,14 @@ def _report_forbidden():
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Not authorized to perform requested action",
+    )
+
+
+def _fetch_posts_with_votes_query(db: Session):
+    # Left outer join ensures all posts are returned, even those with 0 votes
+    # Posts without votes will have a votes count of 0 instead of being excluded
+    return (
+        db.query(Post, func.count(Vote.post_id).label("votes"))
+        .join(Vote, Vote.post_id == Post.id, isouter=True)
+        .group_by(Post.id)
     )
