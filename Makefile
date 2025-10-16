@@ -1,10 +1,31 @@
-run:
-	bash -c "source .venv/bin/activate && fastapi dev app/main.py"
-
 install:
 	bash -c "source .venv/bin/activate && pip install -r requirements.txt"
 
 freeze:
 	bash -c "source .venv/bin/activate && pip freeze > requirements.txt"
 
-.PHONY: run install freeze
+run: ## Run the FastAPI application (dev mode)
+	bash -c "source .venv/bin/activate && fastapi dev app/main.py"
+
+lint: ## Run linting
+	bash -c "source .venv/bin/activate && flake8 app/ --max-line-length=80"
+	bash -c "source .venv/bin/activate && black --check app/ --line-length=80"
+	bash -c "source .venv/bin/activate && isort --check-only app/ --profile=black --line-length=80"
+
+format: ## Format code
+	bash -c "source .venv/bin/activate && black app/ --line-length=80"
+	bash -c "source .venv/bin/activate && isort app/ --profile=black --line-length=80"
+
+clean: ## Clean cache files
+	find . -type f -name "*.pyc" -delete
+	find . -type d -name "__pycache__" -delete
+	find . -type d -name "*.egg-info" -exec rm -rf {} +
+
+migrate: ## Run database migrations
+	bash -c "source .venv/bin/activate && alembic upgrade head"
+
+db-revision: ## Create a new migration
+	@read -p "Enter migration message: " msg; \
+	bash -c "source .venv/bin/activate && alembic revision --autogenerate -m \"$$msg\""
+
+.PHONY: install freeze run lint format clean migrate db-revision
