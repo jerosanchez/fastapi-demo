@@ -29,7 +29,10 @@ def upgrade() -> None:
         sa.Column("published", sa.Boolean(), nullable=True, server_default="true"),
         sa.Column("rating", sa.Integer(), nullable=True),
         sa.Column(
-            "created_at", sa.TIMESTAMP(), nullable=True, server_default=sa.text("now()")
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            nullable=True,
+            server_default=sa.text("now()"),
         ),
         sa.PrimaryKeyConstraint("id"),
     )
