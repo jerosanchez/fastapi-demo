@@ -14,7 +14,8 @@ router = APIRouter(tags=["Authentication"])
 
 @router.post("/login", status_code=status.HTTP_200_OK, response_model=Token)
 def login(
-    credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+    credentials: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.email == credentials.username).first()
 
@@ -34,5 +35,6 @@ def login(
 
 def _report_invalid_login():
     raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN, detail="Invalid email or password"
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Invalid email or password",
     )

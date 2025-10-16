@@ -36,7 +36,8 @@ async def vote(
     else:
         if not found_vote:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Vote does not exist"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Vote does not exist",
             )
 
         vote_query.delete(synchronize_session=False)

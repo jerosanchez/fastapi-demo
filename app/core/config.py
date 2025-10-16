@@ -24,7 +24,9 @@ class Settings(BaseSettings):
     class Config:
         # Load variables from a .env file in the same folder
         # Remember to copy `.env.example` into `.env` and adjust values
-        env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+        env_file = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), ".env"
+        )
 
 
 settings = Settings()

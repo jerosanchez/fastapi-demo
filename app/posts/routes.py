@@ -113,7 +113,7 @@ async def delete_post(
     return
 
 
-### Helper functions
+# Helper functions
 
 
 def _report_bad_request(detail: str):
@@ -122,7 +122,8 @@ def _report_bad_request(detail: str):
 
 def _report_not_found(id: str):
     raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, detail=f"Post not found, id: {id}"
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Post not found, id: {id}",
     )
 
 
