@@ -1,7 +1,11 @@
 @JWT = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYjNjMWE3ZTItNGY4ZC00YTFlLTljMmQtNWU2ZjdhOGI5YzBkIiwiZXhwIjoxNzYwNDU2NzE0fQ.vvMsQngVTNZ1IWDLNxT4ZXaK7RlKrmKwxmmgaEdvq0Q
 @POST_ID = e2f1c3b4-5d6e-7a8b-9c0d-1e2f3a4b5c6d
 
-### Get existing posts
+### Get all posts
+GET http://localhost:8000/posts
+Accept: application/json
+
+### Filter posts
 GET http://localhost:8000/posts?page=1&size=3&search=docker
 Accept: application/json
 
