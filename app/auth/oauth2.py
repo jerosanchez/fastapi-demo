@@ -52,7 +52,7 @@ def get_current_user(
 def _verify_access_token(token: str, credentials_exception) -> TokenPayload:
     try:
         payload = jwt.decode(
-            token, config.oauth_hash_key, algorithms=[config.oauth_algorithm]
+            token, settings.oauth_hash_key, algorithms=[settings.oauth_algorithm]
         )
 
         user_id = payload.get("user_id")
