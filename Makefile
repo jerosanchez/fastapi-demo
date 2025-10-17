@@ -32,9 +32,15 @@ db-reset: ## Reset Docker PostgreSQL volumes
 	docker volume prune -f
 
 dev-up: ## Start development environment
+	docker image prune
 	docker compose -f docker-compose.local.yml up --build -d
 
 dev-down: ## Stop development environment
 	docker compose -f docker-compose.local.yml down
 
-.PHONY: install freeze run lint format clean migrate db-revision db-reset dev-up dev-down
+push-image: ## Build and push the app Docker image to Docker Hub
+	docker login
+	docker build -t jeronimosanchez/fastapi-demo .
+	docker push jeronimosanchez/fastapi-demo
+
+.PHONY: install freeze run lint format clean migrate db-revision db-reset dev-up dev-down push-image
