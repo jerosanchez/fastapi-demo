@@ -63,4 +63,4 @@ push-prod: ## Build and push the image for production
 	docker build -f Dockerfile --target production -t jeronimosanchez/fastapi-demo .
 	docker push jeronimosanchez/fastapi-demo
 
-.PHONY: install freeze run lint format clean db-migrate db-revision db-reset dev-up dev-down push-dev push-prod
+.PHONY: install freeze run lint format clean db-migrate db-revision db-reset db-sample-data dev-up dev-down push-dev push-prod
