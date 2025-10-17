@@ -1,11 +1,8 @@
-install:
+install: ## Install dependencies in virtual environment
 	bash -c "source .venv/bin/activate && pip install -r requirements.txt"
 
-freeze:
+freeze: ## Freeze current dependencies
 	bash -c "source .venv/bin/activate && pip freeze > requirements.txt"
-
-run: ## Run the FastAPI application (dev mode)
-	bash -c "source .venv/bin/activate && fastapi dev app/main.py"
 
 lint: ## Run linting
 	bash -c "source .venv/bin/activate && flake8 app/ --max-line-length=80"
@@ -34,12 +31,10 @@ db-reset: ## Reset Docker PostgreSQL volumes
 	docker compose -f docker-compose.local.yml down -v
 	docker volume prune -f
 
-.PHONY: install freeze run lint format clean migrate db-revision db-reset
+dev-up: ## Start development environment
+	docker compose -f docker-compose.local.yml up --build -d
 
-dev-up:
-	docker compose -f docker-compose.local.yml up --build
-
-dev-down:
+dev-down: ## Stop development environment
 	docker compose -f docker-compose.local.yml down
 
-.PHONY: dev-up dev-down
+.PHONY: install freeze run lint format clean migrate db-revision db-reset dev-up dev-down
