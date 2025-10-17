@@ -1,35 +1,46 @@
+VENV_ACTIVATE = source .venv/bin/activate &&
+MAX_LINE_LENGTH = 80
+
+## --- Dependency management commands
+
 install: ## Install dependencies in virtual environment
-	bash -c "source .venv/bin/activate && pip install -r requirements.txt"
+	bash -c "$(VENV_ACTIVATE) pip install -r requirements.txt"
 
 freeze: ## Freeze current dependencies
-	bash -c "source .venv/bin/activate && pip freeze > requirements.txt"
+	bash -c "$(VENV_ACTIVATE) pip freeze > requirements.txt"
+
+## --- Application commands
 
 lint: ## Run linting
-	bash -c "source .venv/bin/activate && flake8 app/ --max-line-length=80"
-	bash -c "source .venv/bin/activate && black --check app/ --line-length=80"
-	bash -c "source .venv/bin/activate && isort --check-only app/ --profile=black --line-length=80"
+	bash -c "$(VENV_ACTIVATE) flake8 app/ --max-line-length=$(MAX_LINE_LENGTH)"
+	bash -c "$(VENV_ACTIVATE) black --check app/ --line-length=$(MAX_LINE_LENGTH)"
+	bash -c "$(VENV_ACTIVATE) isort --check-only app/ --profile=black --line-length=$(MAX_LINE_LENGTH)"
 
 format: ## Format code
-	bash -c "source .venv/bin/activate && black app/ --line-length=80"
-	bash -c "source .venv/bin/activate && isort app/ --profile=black --line-length=80"
+	bash -c "$(VENV_ACTIVATE) black app/ --line-length=$(MAX_LINE_LENGTH)"
+	bash -c "$(VENV_ACTIVATE) isort app/ --profile=black --line-length=$(MAX_LINE_LENGTH)"
 
 clean: ## Clean cache files
 	find . -type f -name "*.pyc" -delete
 	find . -type d -name "__pycache__" -delete
 	find . -type d -name "*.egg-info" -exec rm -rf {} +
 
-migrate: ## Run database migrations
-	bash -c "source .venv/bin/activate && alembic upgrade head"
-
-db-revision: ## Create a new migration
-	@read -p "Enter migration message: " msg; \
-	bash -c "source .venv/bin/activate && alembic revision --autogenerate -m \"$$msg\""
+## --- Database commands
 
 db-reset: ## Reset Docker PostgreSQL volumes
 	@echo "WARNING: This will delete all PostgreSQL data!"
 	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]
 	docker compose -f docker-compose.local.yml down -v
 	docker volume prune -f
+
+db-revision: ## Create a new migration
+	@read -p "Enter migration message: " msg; \
+	bash -c "$(VENV_ACTIVATE) alembic revision --autogenerate -m \"$$msg\""
+
+db-migrate: ## Run database migrations
+	bash -c "$(VENV_ACTIVATE) alembic upgrade head"
+
+## --- Docker commands
 
 dev-up: ## Start development environment
 	docker image prune
@@ -38,9 +49,14 @@ dev-up: ## Start development environment
 dev-down: ## Stop development environment
 	docker compose -f docker-compose.local.yml down
 
-push-image: ## Build and push the app Docker image to Docker Hub
+push-dev: ## Build and push the image for development
 	docker login
-	docker build -t jeronimosanchez/fastapi-demo .
+	docker build -f Dockerfile --target development -t jeronimosanchez/fastapi-demo .
 	docker push jeronimosanchez/fastapi-demo
 
-.PHONY: install freeze run lint format clean migrate db-revision db-reset dev-up dev-down push-image
+push-prod: ## Build and push the image for production
+	docker login
+	docker build -f Dockerfile --target production -t jeronimosanchez/fastapi-demo .
+	docker push jeronimosanchez/fastapi-demo
+
+.PHONY: install freeze run lint format clean db-migrate db-revision db-reset dev-up dev-down push-dev push-prod
