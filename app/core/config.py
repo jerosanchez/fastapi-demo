@@ -1,5 +1,3 @@
-import os
-
 from pydantic_settings import BaseSettings
 
 
@@ -17,9 +15,9 @@ class Settings(BaseSettings):
     max_page_size: int
 
     class Config:
-        # Load variables from a .env file in the same folder
-        # Remember to copy `.env.example` into `.env` and adjust values
-        env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+        env_file = (".env",)
+
+        extra = "ignore"  # Ignore other env variables found in the .env file
 
 
 settings = Settings()
