@@ -28,4 +28,18 @@ db-revision: ## Create a new migration
 	@read -p "Enter migration message: " msg; \
 	bash -c "source .venv/bin/activate && alembic revision --autogenerate -m \"$$msg\""
 
-.PHONY: install freeze run lint format clean migrate db-revision
+db-reset: ## Reset Docker PostgreSQL volumes
+	@echo "WARNING: This will delete all PostgreSQL data!"
+	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]
+	docker compose -f docker-compose.local.yml down -v
+	docker volume prune -f
+
+.PHONY: install freeze run lint format clean migrate db-revision db-reset
+
+dev-up:
+	docker compose -f docker-compose.local.yml up --build
+
+dev-down:
+	docker compose -f docker-compose.local.yml down
+
+.PHONY: dev-up dev-down
