@@ -40,10 +40,14 @@ db-revision: ## Create a new migration
 db-migrate: ## Run database migrations
 	bash -c "$(VENV_ACTIVATE) alembic upgrade head"
 
+db-sample-data: ## Insert sample data into the database
+	docker exec -i fastapi-demo-api-db-1 \
+	psql -U admin_user -d fastapi_demo_db < scripts/insert_sample_data.sql
+
 ## --- Docker commands
 
 dev-up: ## Start development environment
-	docker image prune
+	docker image prune -f
 	docker compose -f docker-compose.local.yml up --build -d
 
 dev-down: ## Stop development environment
