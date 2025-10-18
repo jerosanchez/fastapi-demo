@@ -22,6 +22,9 @@ format: ## Format code
 	bash -c "$(VENV_ACTIVATE) black app/ --line-length=$(MAX_LINE_LENGTH)"
 	bash -c "$(VENV_ACTIVATE) isort app/ --profile=black --line-length=$(MAX_LINE_LENGTH)"
 
+test: ## Run tests
+	bash -c "$(VENV_ACTIVATE) pytest tests/"
+
 clean: ## Clean cache files
 	find . -type f -name "*.pyc" -delete
 	find . -type d -name "__pycache__" -delete
@@ -65,4 +68,4 @@ push-prod: ## Build and push the image for production
 	docker build -f Dockerfile --target production -t jeronimosanchez/fastapi-demo .
 	docker push jeronimosanchez/fastapi-demo
 
-.PHONY: install freeze run lint format clean db-migrate db-revision db-reset db-sample-data dev-up dev-down push-dev push-prod
+.PHONY: install freeze run lint format test clean db-migrate db-revision db-reset db-sample-data dev-up dev-down push-dev push-prod
