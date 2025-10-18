@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 
+from .exceptions import PasswordVerificationException, UserNotFoundException
 from .models import Token
 from .schemas import TokenOut
 from .service import AuthService
@@ -22,11 +23,13 @@ class AuthRouter:
         credentials: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db),
     ):
-        token: Token = self.service.authenticate_user(
-            db, credentials.username, credentials.password
-        )
-        if not token:
+        try:
+            token: Token = self.service.authenticate_user(
+                db, credentials.username, credentials.password
+            )
+        except (UserNotFoundException, PasswordVerificationException):
             self._report_invalid_login()
+
         return TokenOut(access_token=token.access_token, token_type=token.token_type)
 
     @staticmethod
