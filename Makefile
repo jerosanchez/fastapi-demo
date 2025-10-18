@@ -1,5 +1,5 @@
 VENV_ACTIVATE = source .venv/bin/activate &&
-MAX_LINE_LENGTH = 80
+MAX_LINE_LENGTH = 90
 
 ## --- Dependency management commands
 
