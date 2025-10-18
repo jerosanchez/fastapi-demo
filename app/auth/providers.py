@@ -9,7 +9,7 @@ from app.core.config import settings
 from .models import TokenPayload
 
 
-class OAuth2TokenProviderProtocol(ABC):
+class OAuth2TokenProviderABC(ABC):
     @abstractmethod
     def create_access_token(self, payload: TokenPayload) -> str:
         pass
@@ -19,7 +19,7 @@ class OAuth2TokenProviderProtocol(ABC):
         pass
 
 
-class JwtOAuth2TokenProvider(OAuth2TokenProviderProtocol):
+class JwtOAuth2TokenProvider(OAuth2TokenProviderABC):
     @staticmethod
     def create_access_token(payload: TokenPayload) -> str:
         payload = asdict(payload)

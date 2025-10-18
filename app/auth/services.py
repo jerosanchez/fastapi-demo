@@ -5,17 +5,17 @@ from sqlalchemy.orm import Session
 from app.utils.passwords import verify_password
 
 from .exceptions import PasswordVerificationException, UserNotFoundException
-from .repositories import AuthRepositoryProtocol
+from .repositories import AuthRepositoryABC
 
 
-class AuthServiceProtocol(ABC):
+class AuthServiceABC(ABC):
     @abstractmethod
     def authenticate_user(self, db, username: str, password: str):
         pass
 
 
-class AuthService(AuthServiceProtocol):
-    def __init__(self, repository: AuthRepositoryProtocol):
+class AuthService(AuthServiceABC):
+    def __init__(self, repository: AuthRepositoryABC):
         self.repository = repository
 
     def authenticate_user(self, db: Session, username: str, password: str):

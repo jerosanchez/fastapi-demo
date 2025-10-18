@@ -7,13 +7,14 @@ from app.core.database import get_db
 from .exceptions import PasswordVerificationException, UserNotFoundException
 from .models import Token
 from .schemas import TokenOut
-from .use_cases import AuthenticateUserUseCase  # Use the use case instead of service
+from .use_cases import AuthenticateUserUseCaseABC
 
 
 class AuthRouter:
-    def __init__(self, authenticate_user_use_case: AuthenticateUserUseCase):
+    def __init__(self, authenticate_user_use_case: AuthenticateUserUseCaseABC):
         self.authenticate_user_use_case = authenticate_user_use_case
         self.router = APIRouter(tags=["Authentication"])
+
         self.router.post(
             "/login", status_code=status.HTTP_200_OK, response_model=TokenOut
         )(self.login)

@@ -1,15 +1,22 @@
+from abc import ABC
+
 from sqlalchemy.orm import Session
 
 from .models import Token, TokenPayload
-from .providers import OAuth2TokenProviderProtocol
-from .services import AuthServiceProtocol
+from .providers import OAuth2TokenProviderABC
+from .services import AuthServiceABC
 
 
-class AuthenticateUserUseCase:
+class AuthenticateUserUseCaseABC(ABC):
+    def execute(self, db: Session, username: str, password: str) -> Token:
+        pass
+
+
+class AuthenticateUserUseCase(AuthenticateUserUseCaseABC):
     def __init__(
         self,
-        auth_service: AuthServiceProtocol,
-        token_provider: OAuth2TokenProviderProtocol,
+        auth_service: AuthServiceABC,
+        token_provider: OAuth2TokenProviderABC,
     ):
         self.auth_service = auth_service
         self.token_provider = token_provider
