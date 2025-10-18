@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.auth import oauth2
-from app.core.database import get_db
+from app.core.dependencies.current_user import get_current_user
+from app.core.dependencies.database import get_db
 from app.users.models import User
 from app.votes.models import Vote
 from app.votes.schemas import VotePost
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/votes", tags=["Votes"])
 async def vote(
     vote_data: VotePost,
     db: Session = Depends(get_db),
-    current_user: User = Depends(oauth2.get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     vote_query = db.query(Vote).filter(
         Vote.post_id == str(vote_data.post_id), Vote.user_id == current_user.id

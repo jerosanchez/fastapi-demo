@@ -1,26 +1,32 @@
-from fastapi import HTTPException, status
-from fastapi.params import Depends
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from app.auth.providers import JwtOAuth2TokenProvider
-from app.core.database import get_db
+from app.auth.providers import JwtOAuth2TokenProvider, OAuth2TokenProviderABC
 from app.users.models import User
+
+from .database import get_db
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
+def get_token_provider() -> OAuth2TokenProviderABC:
+    return JwtOAuth2TokenProvider()
+
+
 def get_current_user(
-    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+    token_provider: OAuth2TokenProviderABC = Depends(get_token_provider),
 ) -> User:
+    # TODO: Convert to a custom exception class and let the client to handle it
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    payload = JwtOAuth2TokenProvider.verify_access_token(token, credentials_exception)
-
+    payload = token_provider.verify_access_token(token, credentials_exception)
     user = _fetch_user(payload.user_id, db)
 
     if not user:

@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.auth import oauth2
 from app.core.config import settings
-from app.core.database import get_db
+from app.core.dependencies.current_user import get_current_user
+from app.core.dependencies.database import get_db
 from app.users.models import User
 from app.votes.models import Vote
 
@@ -44,7 +44,7 @@ async def get_posts(
 async def create_post(
     post_data: PostCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(oauth2.get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     new_post = Post(owner_id=current_user.id, **post_data.model_dump())
 
@@ -73,7 +73,7 @@ async def update_post(
     post_id: str,
     post_data: PostUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(oauth2.get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     post_query = db.query(Post).filter(Post.id == post_id)
     post = post_query.first()
@@ -90,13 +90,11 @@ async def update_post(
     return {"data": post}
 
 
-@router.delete(
-    "/{post_id}", response_model=None, status_code=status.HTTP_204_NO_CONTENT
-)
+@router.delete("/{post_id}", response_model=None, status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(
     post_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(oauth2.get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> None:
     post_query = db.query(Post).filter(Post.id == post_id)
     post = post_query.first()
