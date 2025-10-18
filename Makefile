@@ -25,6 +25,9 @@ format: ## Format code
 test: ## Run tests
 	bash -c "$(VENV_ACTIVATE) pytest tests/"
 
+run: ## Run the application
+	bash -c "$(VENV_ACTIVATE) fastapi dev app/main.py"
+
 clean: ## Clean cache files
 	find . -type f -name "*.pyc" -delete
 	find . -type d -name "__pycache__" -delete
