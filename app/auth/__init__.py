@@ -1,7 +1,5 @@
-# from . import models
-from .routes import router
+from .composition import build_auth_router
 
 
-def init_service(app, engine):
-    # models.Base.metadata.create_all(bind=engine)
-    app.include_router(router)
+def init_service(app):
+    app.include_router(build_auth_router())
