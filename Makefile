@@ -9,6 +9,8 @@ install: ## Install dependencies in virtual environment
 freeze: ## Freeze current dependencies
 	bash -c "$(VENV_ACTIVATE) pip freeze > requirements.txt"
 
+## TODO: Split dev and prod dependencies in separate files
+
 ## --- Application commands
 
 lint: ## Run linting
