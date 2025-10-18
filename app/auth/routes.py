@@ -2,37 +2,32 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from app.auth.oauth2 import create_access_token
 from app.core.database import get_db
-from app.users.models import User
-from app.utils.passwords import verify_password
 
-from .schemas import Token, TokenPayload
+from .models import Token
+from .schemas import TokenOut
+from .service import AuthService
 
 
 class AuthRouter:
-    def __init__(self):
+    def __init__(self, service: AuthService):
+        self.service = service
         self.router = APIRouter(tags=["Authentication"])
-        self.router.post("/login", status_code=status.HTTP_200_OK, response_model=Token)(
-            self.login
-        )
+        self.router.post(
+            "/login", status_code=status.HTTP_200_OK, response_model=TokenOut
+        )(self.login)
 
     def login(
         self,
         credentials: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db),
     ):
-        user = db.query(User).filter(User.email == credentials.username).first()
-
-        if not user:
+        token: Token = self.service.authenticate_user(
+            db, credentials.username, credentials.password
+        )
+        if not token:
             self._report_invalid_login()
-
-        if not verify_password(credentials.password, user.password):
-            self._report_invalid_login()
-
-        access_token = create_access_token(payload=TokenPayload(user_id=user.id))
-
-        return Token(access_token=access_token, token_type="bearer")
+        return TokenOut(access_token=token.access_token, token_type=token.token_type)
 
     @staticmethod
     def _report_invalid_login():

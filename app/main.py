@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import auth, posts, users, votes
-from app.core.database import engine
 
 app = FastAPI()
 
@@ -20,7 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-posts.init_service(app, engine)
-users.init_service(app, engine)
-auth.init_service(app, engine)
-votes.init_service(app, engine)
+posts.init_service(app)
+users.init_service(app)
+auth.init_service(app)
+votes.init_service(app)

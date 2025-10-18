@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
@@ -10,17 +11,15 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.users.models import User
 
-from .schemas import TokenPayload
+from .models import TokenPayload
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
 def create_access_token(payload: TokenPayload) -> str:
-    payload = payload.model_dump()
-    expire_time = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.oauth_token_ttl
-    )
-    payload.update({"exp": expire_time})
+    payload = asdict(payload)
+    expire_time = datetime.now(timezone.utc) + timedelta(minutes=settings.oauth_token_ttl)
+    payload["exp"] = expire_time
 
     return jwt.encode(
         payload, settings.oauth_hash_key, algorithm=settings.oauth_algorithm

@@ -4,7 +4,9 @@ Encapsulates construction of routers and other auth-related components.
 """
 
 from .routes import AuthRouter
+from .service import AuthService
 
 
 def build_auth_router():
-    return AuthRouter().router
+    service = AuthService()
+    return AuthRouter(service).router

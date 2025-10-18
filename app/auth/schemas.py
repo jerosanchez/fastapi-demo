@@ -7,10 +7,6 @@ class UserLogin(BaseModel):
     password: str
 
 
-class Token(BaseModel):
+class TokenOut(BaseModel):
     access_token: str
     token_type: str
-
-
-class TokenPayload(BaseModel):
-    user_id: str | None = None
