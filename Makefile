@@ -63,12 +63,12 @@ dev-down: ## Stop development environment
 
 push-dev: ## Build and push the image for development
 	docker login
-	docker build -f Dockerfile --target development -t jeronimosanchez/fastapi-demo .
-	docker push jeronimosanchez/fastapi-demo
+	docker build -f Dockerfile --target development -t jerosanchez/fastapi-demo .
+	docker push jerosanchez/fastapi-demo
 
 push-prod: ## Build and push the image for production
 	docker login
-	docker build -f Dockerfile --target production -t jeronimosanchez/fastapi-demo .
-	docker push jeronimosanchez/fastapi-demo
+	docker build -f Dockerfile --target production -t jerosanchez/fastapi-demo .
+	docker push jerosanchez/fastapi-demo
 
 .PHONY: install freeze run lint format test clean db-migrate db-revision db-reset db-sample-data dev-up dev-down push-dev push-prod
