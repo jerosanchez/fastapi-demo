@@ -16,10 +16,10 @@ class Settings(BaseSettings):
     default_page_size: int
     max_page_size: int
 
-    class Config:
-        env_file = (".env",) if os.path.exists(".env") else None
+    model_config = {
+        "env_file": ".env" if os.path.exists(".env") else None,
+        "extra": "ignore",
+    }
 
-        extra = "ignore"  # Ignore other env variables found in the .env file
 
-
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]

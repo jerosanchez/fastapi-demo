@@ -9,12 +9,11 @@ class UserSchemaBase(BaseModel):
     is_active: bool = True
 
 
-class UserOut(UserSchemaBase):
+class UserOut(BaseModel):
     id: UUID
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class UserCreate(UserSchemaBase):
