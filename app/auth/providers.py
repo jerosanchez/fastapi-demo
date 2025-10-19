@@ -10,26 +10,28 @@ from .models import TokenPayload
 
 
 class OAuth2TokenProviderABC(ABC):
+    @staticmethod
     @abstractmethod
-    def create_access_token(self, payload: TokenPayload) -> str:
+    def create_access_token(payload: TokenPayload) -> str:
         pass
 
+    @staticmethod
     @abstractmethod
-    def verify_access_token(self, token: str, credentials_exception) -> TokenPayload:
+    def verify_access_token(token: str, credentials_exception) -> TokenPayload:
         pass
 
 
 class JwtOAuth2TokenProvider(OAuth2TokenProviderABC):
     @staticmethod
     def create_access_token(payload: TokenPayload) -> str:
-        payload = asdict(payload)
+        payload_data = asdict(payload)
         expire_time = datetime.now(timezone.utc) + timedelta(
             minutes=settings.oauth_token_ttl
         )
-        payload["exp"] = expire_time
+        payload_data["exp"] = expire_time
 
         return jwt.encode(
-            payload, settings.oauth_hash_key, algorithm=settings.oauth_algorithm
+            payload_data, settings.oauth_hash_key, algorithm=settings.oauth_algorithm
         )
 
     @staticmethod

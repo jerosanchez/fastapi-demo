@@ -14,3 +14,4 @@
 - Use pytest conventions for setup and assertions.
 - Mock external dependencies and verify their usage with assertions.
 - Keep tests isolated and independent from each other.
+- When finish writing a suite case of tests, run `make lint && make test` to validate them.
