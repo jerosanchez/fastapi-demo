@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from sqlalchemy.orm import Session
 
@@ -8,6 +8,7 @@ from .services import AuthServiceABC
 
 
 class AuthenticateUserUseCaseABC(ABC):
+    @abstractmethod
     def execute(self, db: Session, username: str, password: str) -> Token:
         pass
 
@@ -24,7 +25,7 @@ class AuthenticateUserUseCase(AuthenticateUserUseCaseABC):
     def execute(self, db: Session, username: str, password: str) -> Token:
         user = self.auth_service.authenticate_user(db, username, password)
         access_token = self.token_provider.create_access_token(
-            payload=TokenPayload(user_id=user.id)
+            payload=TokenPayload(user_id=str(user.id))
         )
 
         return Token(access_token=access_token, token_type="bearer")
