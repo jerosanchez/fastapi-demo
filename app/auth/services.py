@@ -25,7 +25,7 @@ class AuthService(AuthServiceABC):
         if not user:
             raise UserNotFoundException()
 
-        if not verify_password(password, user.password):
+        if not verify_password(password, str(user.password)):
             raise PasswordVerificationException()
 
         return user
