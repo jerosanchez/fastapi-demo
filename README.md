@@ -1,106 +1,83 @@
-# README
+# FastAPI Demo
 
-A simple FastAPI demo app to showcase basic backend development concepts.
+A simple FastAPI app with users, posts, votes, and basic authentication.
 
-The app exposes an API to work with posts, users, and votes, behind a simple auth layer.
+## Features
 
-## Getting started
+- RESTful API for posts, users, votes
+- JWT authentication
+- Docker support
+- Sample data loader
+- Makefile for common dev tasks
 
-### Prerequistes
-
-The following requirements are aimed for Debian systems.
-
-```bash
-# --- Install `pip` dependency manager
-
-$ sudo apt install python3-pip
-
-# --- Install Docker service
-
-$ sudo apt install ca-certificates curl
-$ sudo install -m 0755 -d /etc/apt/keyrings
-$ sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-$ sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-$ echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-$ sudo apt update
-
-$ sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-$ sudo usermod -aG docker jero
-```
-
-### Setup (only once)
+## Installation
 
 ```bash
-# --- Create SSH key and upload to GitHub
+# Install Python & venv
+sudo apt install python3-pip python3.13-venv
 
-$ cd ~/.ssh
-$ ssh-keygen -f github-jerosanchez
-$ nano config
+# Clone repo & enter project
+git clone git@github.com:jerosanchez/fastapi-demo.git
+cd fastapi-demo
 
-# jerosanchez @ GitHub
-Host github-jerosanchez
-    HostName github.com
-    User git
-    IdentityFile ~/.ssh/github-jerosanchez
-    IdentitiesOnly yes
+# Create & activate virtualenv
+python3 -m venv .venv
+source .venv/bin/activate
 
-# --- Clone the project from GitHub
+# Install dependencies
+pip install -r requirements.txt
 
-$ cd path/to/projects
-$ git clone git@github.com:jerosanchez/fastapi-demo.git
-$ cd fastapi-demo
-
-# --- Create virtual environment
-
-$ python -m venv .venv
-
-# --- Activate local virtual environment
-
-$ source venv/bin/activate
-
-# --- Install dependencies
-
-$ pip install -r requirements.txt
-
-# --- Create Docker network
-
-$ docker network create internal
-
-# --- Prepare .env file
-
-$ cp .env.example .env
+# Prepare .env file
+cp .env.example .env
 ```
 
-### Run
+## Docker
 
 ```bash
-# Start/Restart dockerized app
-$ make dev-up
+# Install Docker
+sudo apt install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker $USER
+sudo reboot
 
-# (Optional) Insert sample data
-$ make db-sample-data
+# Create Docker network
+docker network create internal
 ```
 
-### Dev process
-
-This project includes a `Makefile` to ease the development process.
-
-Please, use the following comands as part of your QA process before you commit and push changes:
+## Usage
 
 ```bash
-# Check for linting issues
-$ make lint
+# Start app (Docker)
+make dev-up
 
-# Format source code according to rules
-$ make format
-
-# Run all tests
-$ make test
+# Load sample data
+make db-sample-data
 ```
 
-Take a look into `Makefile` to see other usefull commands available.
+## Development
+
+```bash
+# Lint code
+make lint
+
+# Format code
+make format
+```
+
+## Testing
+
+```bash
+# Run tests
+make test
+```
+
+## Notes
+
+- See `Makefile` for more commands.
+- SSH setup for GitHub is optional and not required for running the app.
+- For more info, see [FastAPI documentation](https://fastapi.tiangolo.com/).
