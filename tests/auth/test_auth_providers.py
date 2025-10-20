@@ -2,7 +2,6 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import pytest
-from jose import jwt
 
 from app.auth.models import TokenPayload
 from app.auth.providers import JwtOAuth2TokenProvider
@@ -18,6 +17,7 @@ class TestJwtOAuth2TokenProvider:
         self.key = "test-secret-key"
         self.algorithm = "HS256"
         self.ttl = 15
+        self.expiration = 1234567890
         self.settings_patch = patch("app.auth.providers.settings")
         self.mock_settings = self.settings_patch.start()
         self.mock_settings.oauth_hash_key = self.key
@@ -78,7 +78,7 @@ class TestJwtOAuth2TokenProvider:
         """Should return TokenPayload when given a valid JWT access token."""
         mock_jwt_decode.return_value = {
             "user_id": self.payload.user_id,
-            "exp": 1234567890,
+            "exp": self.expiration,
         }
         token = "dummy-token"
 
@@ -107,7 +107,8 @@ class TestJwtOAuth2TokenProvider:
         """
         Should raise requested exception if user_id is missing in token payload.
         """
-        mock_jwt_decode.return_value = {"exp": 1234567890}
+        mock_jwt_decode.return_value = {"exp": self.expiration}
         token = "dummy-token"
+
         with pytest.raises(DummyCredentialsException):
             JwtOAuth2TokenProvider.verify_access_token(token, DummyCredentialsException)

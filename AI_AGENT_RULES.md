@@ -31,7 +31,7 @@
 - Use `pytest` conventions for setup and assertions.
 - Always mock external dependencies so we can verify their usage with assertions and test the expected behavior of the SUT.
 - Keep tests isolated and independent from each other.
-- Run `make lint && make test` to validate all tests, and make the required fixes if required.
+- After writing the tests, always run `make lint && make test`, and make the required fixes until pass.
 - Do not modify production code to fix the tests; if you detect a bug in production code as a consequence of running a test, ask before changing code.
 - Create tests under `tests/<package_name>` folder
 
