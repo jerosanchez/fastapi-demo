@@ -28,10 +28,10 @@ class AuthRouter:
             token: Token = self.authenticate_user_use_case.execute(
                 db, credentials.username, credentials.password
             )
+            return TokenOut(access_token=token.access_token, token_type=token.token_type)
+
         except (UserNotFoundException, PasswordVerificationException):
             self._report_invalid_login()
-
-        return TokenOut(access_token=token.access_token, token_type=token.token_type)
 
     @staticmethod
     def _report_invalid_login():

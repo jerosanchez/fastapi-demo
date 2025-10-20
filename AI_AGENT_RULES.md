@@ -17,3 +17,4 @@
 - Keep tests isolated and independent from each other.
 - Run `make lint && make test` to validate all tests, and make the required fixes if required.
 - Do not modify production code to fix the tests; if you detect a bug in propduction code as a consequence of running a test, ask before changing code.
+- Create tests under `tests/<packe_name>` folder
