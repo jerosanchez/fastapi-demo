@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies.database import get_db
 
 from .exceptions import EmailAlreadyExistsException
+from .models import NewUserData
 from .schemas import UserCreate, UserOut
 from .use_cases import CreateUserUseCaseABC, GetUserByIdUseCaseABC
 
@@ -27,7 +28,10 @@ class UserRoutes:
         Handle user creation.
         """
         try:
-            user = self.create_user_use_case.execute(user_data.model_dump(), db)
+            new_user_data = NewUserData(
+                email=user_data.email, password=user_data.password
+            )
+            user = self.create_user_use_case.execute(new_user_data, db)
             return {"data": user}
         except EmailAlreadyExistsException:
             self._report_user_exists(str(user_data.email))

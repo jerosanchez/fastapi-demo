@@ -1,16 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import Any
 
 from sqlalchemy.orm import Session
 
 from .exceptions import EmailAlreadyExistsException
-from .models import User
+from .models import NewUserData, User
+from .repositories import UserRepositoryABC
 from .utils import hash_password
 
 
 class UserServiceABC(ABC):
     @abstractmethod
-    def create_user(self, user_data: dict[str, Any], db: Session) -> User:
+    def create_user(self, new_user_data: NewUserData, db: Session) -> User:
         pass
 
     @abstractmethod
@@ -19,19 +19,19 @@ class UserServiceABC(ABC):
 
 
 class UserService(UserServiceABC):
-    def create_user(self, user_data: dict[str, Any], db: Session) -> User:
-        if db.query(User).filter(User.email == user_data["email"]).first():
-            raise EmailAlreadyExistsException(user_data["email"])
+    def __init__(self, repository: UserRepositoryABC):
+        self.repository = repository
 
-        user_data = user_data.copy()
-        user_data["password"] = hash_password(user_data["password"])
-        new_user = User(**user_data)
+    def create_user(self, new_user_data: NewUserData, db: Session) -> User:
+        if self.repository.get_user_by_email(db, new_user_data.email):
+            raise EmailAlreadyExistsException(new_user_data.email)
 
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
+        hashed_password = hash_password(new_user_data.password)
+        new_user = User(
+            email=new_user_data.email, password=hashed_password, is_active=True
+        )
 
-        return new_user
+        return self.repository.add_user(db, new_user)
 
     def get_user_by_id(self, user_id: str, db: Session) -> User | None:
-        return db.query(User).filter(User.id == user_id).first()
+        return self.repository.get_user_by_id(db, user_id)

@@ -16,3 +16,9 @@ class User(Base):
     is_active = Column(Boolean, server_default="TRUE", nullable=False)
 
     __table_args__ = (Index("users_email_key", "email", unique=True),)
+
+
+class NewUserData:
+    def __init__(self, email: str, password: str):
+        self.email = email
+        self.password = password
