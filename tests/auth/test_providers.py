@@ -89,8 +89,12 @@ class TestJwtOAuth2TokenProvider:
         assert isinstance(result, TokenPayload)
         assert result.user_id == self.payload.user_id
 
-    def test_verify_access_token_invalid_token(self):
+    @patch("app.auth.providers.jwt.decode")
+    def test_verify_access_token_invalid_token(self, mock_jwt_decode):
         """Should raise requested exception if token is invalid."""
+        from jose import JWTError
+
+        mock_jwt_decode.side_effect = JWTError
         invalid_token = "invalid.token.value"
 
         with pytest.raises(DummyCredentialsException):
@@ -98,12 +102,12 @@ class TestJwtOAuth2TokenProvider:
                 invalid_token, DummyCredentialsException
             )
 
-    def test_verify_access_token_missing_user_id(self):
+    @patch("app.auth.providers.jwt.decode")
+    def test_verify_access_token_missing_user_id(self, mock_jwt_decode):
         """
         Should raise requested exception if user_id is missing in token payload.
         """
-        expire_time = datetime.now(timezone.utc) + timedelta(minutes=self.ttl)
-        token = jwt.encode({"exp": expire_time}, self.key, algorithm=self.algorithm)
-
+        mock_jwt_decode.return_value = {"exp": 1234567890}
+        token = "dummy-token"
         with pytest.raises(DummyCredentialsException):
             JwtOAuth2TokenProvider.verify_access_token(token, DummyCredentialsException)
