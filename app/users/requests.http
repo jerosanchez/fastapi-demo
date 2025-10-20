@@ -8,6 +8,6 @@ Content-Type: application/json
 }
 
 ### Get user details
-GET http://localhost:8000/users/ed67f03a-69b2-46e4-8360-b93705321932
+GET http://localhost:8000/users/b3c1a7e2-4f8d-4a1e-9c2d-5e6f7a8b9c0d
 
 ###

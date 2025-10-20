@@ -9,7 +9,7 @@ class UserSchemaBase(BaseModel):
     is_active: bool = True
 
 
-class UserOut(BaseModel):
+class UserOut(UserSchemaBase):
     id: UUID
     created_at: datetime
 

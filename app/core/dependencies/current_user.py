@@ -27,7 +27,7 @@ def get_current_user(
     )
 
     payload = token_provider.verify_access_token(token, credentials_exception)
-    user = _fetch_user(payload.user_id, db)
+    user = _fetch_user(str(payload.user_id), db)
 
     if not user:
         raise credentials_exception
