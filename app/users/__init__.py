@@ -1,5 +1,5 @@
-from .composition import user_routes
+from .composition import build_user_router
 
 
 def init_service(app):
-    app.include_router(user_routes.router)
+    app.include_router(build_user_router())
