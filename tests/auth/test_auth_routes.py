@@ -15,9 +15,7 @@ class MockAuthenticateUserUseCase(AuthenticateUserUseCaseABC):
     def execute(self, db, username, password) -> Token:
         if self.should_raise:
             raise self.should_raise
-        if self.token is not None:
-            return self.token
-        return Token(access_token="dummy", token_type="bearer")
+        return self.token or Token(access_token="dummy", token_type="bearer")
 
 
 class TestAuthRouter:
@@ -51,7 +49,7 @@ class TestAuthRouter:
 
     def test_login_user_not_found(self):
         """
-        Should raise 403 error when user is not found.
+        Should return 403 error when user is not found.
         """
         self.authenticate_user_use_case.should_raise = UserNotFoundException()
 
@@ -65,7 +63,7 @@ class TestAuthRouter:
 
     def test_login_password_verification_error(self):
         """
-        Should raise 403 error when password verification fails.
+        Should return 403 error when password verification fails.
         """
         self.authenticate_user_use_case.should_raise = PasswordVerificationException()
 

@@ -10,7 +10,6 @@ from app.users.services import UserService
 
 class TestUserService:
     def setup_method(self):
-        """Set up UserService with a mock repository for each test."""
         self.mock_repo = Mock()
         self.service = UserService(self.mock_repo)
         self.db = Mock(spec=Session)
@@ -21,7 +20,7 @@ class TestUserService:
         self.user_id = "user-123"
 
     def test_create_user_happy_path(self):
-        """Should create a new user when email does not exist."""
+        """Should return new user when email does not exist."""
         new_user_data = NewUserData(email=self.new_email, password=self.password)
         self.mock_repo.get_user_by_email.return_value = None
         expected_user = User(
