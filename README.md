@@ -81,3 +81,15 @@ make test
 - See `Makefile` for more commands.
 - SSH setup for GitHub is optional and not required for running the app.
 - For more info, see [FastAPI documentation](https://fastapi.tiangolo.com/).
+
+## Project Structure
+
+This project follows a layered architecture to promote clarity, testability, and maintainability. The main layers are:
+
+- **API Layer**: Handles HTTP requests and responses.
+- **Use Case Layer**: Encapsulates application-specific business logic.  
+  Even if thin, this layer is kept for consistency across packages. It allows us to inject different service implementations for testing, makes it easier to evolve business logic without changing API or service layers, and helps clarify the application structure for new contributors.
+- **Service Layer**: Contains business logic and interacts with the database or other external systems.
+- **Model Layer**: Defines ORM models and schemas.
+
+This separation of concerns makes the codebase easier to test, maintain, and extend.

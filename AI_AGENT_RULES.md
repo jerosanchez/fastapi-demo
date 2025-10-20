@@ -14,6 +14,7 @@
 - Use comment headers (e.g., `# === Public Route Handlers ===`, `# === Private Helpers ===`) to separate sections for clarity.
 - Always convert Pydantic models to dicts before passing to use cases (e.g., `user_data.model_dump()`).
 - Keep business logic and HTTP logic separated for testability and clarity.
+- **Always suffix use case implementation classes with `UseCase` (e.g., `CreateUserUseCase`). This makes their role explicit and consistent across the codebase.**
 
 ## Unit Test Writing Rules
 
@@ -33,3 +34,7 @@
 - Run `make lint && make test` to validate all tests, and make the required fixes if required.
 - Do not modify production code to fix the tests; if you detect a bug in production code as a consequence of running a test, ask before changing code.
 - Create tests under `tests/<package_name>` folder
+
+## Formatting rules
+
+- Keep all lines under 90 characters long to avoid linter issues.

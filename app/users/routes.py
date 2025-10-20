@@ -5,14 +5,14 @@ from app.core.dependencies.database import get_db
 
 from .exceptions import EmailAlreadyExistsException
 from .schemas import UserCreate, UserOut
-from .use_cases import CreateUserABC, GetUserByIdABC
+from .use_cases import CreateUserUseCaseABC, GetUserByIdUseCaseABC
 
 
 class UserRoutes:
     def __init__(
         self,
-        create_user_use_case: CreateUserABC,
-        get_user_by_id_use_case: GetUserByIdABC,
+        create_user_use_case: CreateUserUseCaseABC,
+        get_user_by_id_use_case: GetUserByIdUseCaseABC,
     ):
         self.create_user_use_case = create_user_use_case
         self.get_user_by_id_use_case = get_user_by_id_use_case
