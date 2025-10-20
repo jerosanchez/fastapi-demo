@@ -3,10 +3,10 @@ from abc import ABC, abstractmethod
 from sqlalchemy.orm import Session
 
 from app.users.models import User
-from app.utils.passwords import verify_password
 
 from .exceptions import PasswordVerificationException, UserNotFoundException
 from .repositories import AuthRepositoryABC
+from .utils import verify_password
 
 
 class AuthServiceABC(ABC):
