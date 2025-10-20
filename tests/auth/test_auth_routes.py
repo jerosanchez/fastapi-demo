@@ -7,14 +7,12 @@ from app.auth.routes import AuthRouter
 from app.auth.use_cases import AuthenticateUserUseCaseABC
 
 
-class DummyAuthenticateUserUseCase(AuthenticateUserUseCaseABC):
-    def __init__(self, should_raise=None, token=None):
-        self.should_raise = should_raise
-        self.token = token
-        self.called_with = None
+class MockAuthenticateUserUseCase(AuthenticateUserUseCaseABC):
+    def __init__(self):
+        self.should_raise: Exception | None = None
+        self.token: Token | None = None
 
     def execute(self, db, username, password) -> Token:
-        self.called_with = (db, username, password)
         if self.should_raise:
             raise self.should_raise
         if self.token is not None:
@@ -27,9 +25,8 @@ class TestAuthRouter:
         """
         Setup AuthRouter and FastAPI app for each test.
         """
-        self.token = Token(access_token="abc123", token_type="bearer")
-        self.use_case = DummyAuthenticateUserUseCase(token=self.token)
-        self.auth_router = AuthRouter(self.use_case)
+        self.authenticate_user_use_case = MockAuthenticateUserUseCase()
+        self.auth_router = AuthRouter(self.authenticate_user_use_case)
         self.app = FastAPI()
         self.app.include_router(self.auth_router.router)
         self.client = TestClient(self.app)
@@ -38,25 +35,25 @@ class TestAuthRouter:
         """
         Should return valid token when credentials are correct.
         """
+        token = Token(access_token="abc123", token_type="bearer")
+        self.authenticate_user_use_case.token = token
+
         response = self.client.post(
             "/login",
             data={"username": "user", "password": "pass"},
         )
 
-        # Ensure use case was called with correct args
-        assert self.use_case.called_with is not None
-        db, username, password = self.use_case.called_with
-        assert username == "user"
-        assert password == "pass"
-
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {"access_token": "abc123", "token_type": "bearer"}
+        assert response.json() == {
+            "access_token": token.access_token,
+            "token_type": token.token_type,
+        }
 
     def test_login_user_not_found(self):
         """
         Should raise 403 error when user is not found.
         """
-        self.use_case.should_raise = UserNotFoundException()
+        self.authenticate_user_use_case.should_raise = UserNotFoundException()
 
         response = self.client.post(
             "/login",
@@ -70,7 +67,7 @@ class TestAuthRouter:
         """
         Should raise 403 error when password verification fails.
         """
-        self.use_case.should_raise = PasswordVerificationException()
+        self.authenticate_user_use_case.should_raise = PasswordVerificationException()
 
         response = self.client.post(
             "/login",

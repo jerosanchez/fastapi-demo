@@ -29,11 +29,12 @@
 - Place success (happy path) test cases before error cases in the test class.
 - Suffix success (happy path) test method names with `_happy_path`.
 - Use `pytest` conventions for setup and assertions.
-- Always mock external dependencies so we can verify their usage with assertions and test the expected behavior of the SUT.
+- As a general rule, there's no need to test how or if dependencies are called, we are interested only in SUT behavior.
 - Keep tests isolated and independent from each other.
 - After writing the tests, always run `make lint && make test`, and make the required fixes until pass.
 - Do not modify production code to fix the tests; if you detect a bug in production code as a consequence of running a test, ask before changing code.
 - Create tests under `tests/<package_name>` folder
+- Do not add header comments to test files.
 
 ## Formatting rules
 
