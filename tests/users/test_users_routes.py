@@ -1,9 +1,10 @@
+from unittest.mock import Mock
+
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 
 from app.users.exceptions import EmailAlreadyExistsException
-from app.users.models import CreateUserData, User
+from app.users.models import User
 from app.users.routes import UserRoutes
 from app.users.schemas import UserOut
 from app.users.use_cases import CreateUserUseCaseABC, GetUserByIdUseCaseABC
@@ -11,31 +12,10 @@ from app.users.use_cases import CreateUserUseCaseABC, GetUserByIdUseCaseABC
 from ..shared.test_helpers import make_stored_user, random_user_id
 
 
-class MockCreateUserUseCase(CreateUserUseCaseABC):
-    def __init__(self):
-        self.should_raise: Exception | None = None
-        self.return_value: User | None = None
-
-    def execute(self, new_user_data: CreateUserData, db: Session):
-        if self.should_raise:
-            raise self.should_raise
-        return self.return_value or User(
-            id="user-1", email=new_user_data.email, is_active=True
-        )
-
-
-class MockGetUserByIdUseCase(GetUserByIdUseCaseABC):
-    def __init__(self):
-        self.should_return_user: User | None = None
-
-    def execute(self, user_id: str, db: Session):
-        return self.should_return_user
-
-
 class TestUserRoutes:
     def setup_method(self):
-        self.create_user_use_case_mock = MockCreateUserUseCase()
-        self.get_user_by_id_use_case_mock = MockGetUserByIdUseCase()
+        self.create_user_use_case_mock = Mock(spec=CreateUserUseCaseABC)
+        self.get_user_by_id_use_case_mock = Mock(spec=GetUserByIdUseCaseABC)
         self.sut = UserRoutes(
             self.create_user_use_case_mock, self.get_user_by_id_use_case_mock
         )
@@ -47,7 +27,7 @@ class TestUserRoutes:
         """Should return new user when data is valid."""
         new_user = make_stored_user()
 
-        self.create_user_use_case_mock.return_value = new_user
+        self.create_user_use_case_mock.execute.return_value = new_user
 
         response = self.client.post(
             "/users/", json={"email": new_user.email, "password": new_user.password}
@@ -63,7 +43,9 @@ class TestUserRoutes:
         Should return 400 BAD REQUEST if email already exists.
         """
         new_user = make_stored_user()
-        self.create_user_use_case_mock.should_raise = EmailAlreadyExistsException()
+        self.create_user_use_case_mock.execute.side_effect = (
+            EmailAlreadyExistsException()
+        )
 
         response = self.client.post(
             "/users/", json={"email": new_user.email, "password": new_user.password}
@@ -81,7 +63,7 @@ class TestUserRoutes:
         """
         stored_user = make_stored_user()
 
-        self.get_user_by_id_use_case_mock.should_return_user = stored_user
+        self.get_user_by_id_use_case_mock.execute.return_value = stored_user
 
         response = self.client.get(f"/users/{stored_user.id}")
         returned_user = _extract_user_out_from_response(response)
@@ -96,7 +78,7 @@ class TestUserRoutes:
         """
         user_id = random_user_id()
 
-        self.get_user_by_id_use_case_mock.should_return_user = None
+        self.get_user_by_id_use_case_mock.execute.return_value = None
 
         response = self.client.get(f"/users/{user_id}")
 

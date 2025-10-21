@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
 
@@ -9,23 +11,12 @@ from app.auth.use_cases import AuthenticateUserUseCaseABC
 from ..shared.test_helpers import random_password, random_string, random_user_id
 
 
-class MockAuthenticateUserUseCase(AuthenticateUserUseCaseABC):
-    def __init__(self):
-        self.should_raise: Exception | None = None
-        self.return_value: Token | None = None
-
-    def execute(self, db, username, password) -> Token:
-        if self.should_raise:
-            raise self.should_raise
-        return self.return_value or Token(access_token="dummy", token_type="bearer")
-
-
 class TestAuthRouter:
     def setup_method(self):
         """
         Setup AuthRouter and FastAPI app for each test.
         """
-        self.authenticate_user_use_case_mock = MockAuthenticateUserUseCase()
+        self.authenticate_user_use_case_mock = Mock(spec=AuthenticateUserUseCaseABC)
         self.sut = AuthRouter(self.authenticate_user_use_case_mock)
         self.app = FastAPI()
         self.app.include_router(self.sut.router)
@@ -37,7 +28,7 @@ class TestAuthRouter:
         """
         token = Token(access_token=random_string(), token_type="bearer")
 
-        self.authenticate_user_use_case_mock.return_value = token
+        self.authenticate_user_use_case_mock.execute.return_value = token
 
         response = self.client.post(
             "/login",
@@ -57,7 +48,9 @@ class TestAuthRouter:
         """
         non_existent_user_id = random_string()
 
-        self.authenticate_user_use_case_mock.should_raise = UserNotFoundException()
+        self.authenticate_user_use_case_mock.execute.side_effect = (
+            UserNotFoundException()
+        )
 
         response = self.client.post(
             "/login",
@@ -74,7 +67,7 @@ class TestAuthRouter:
         """
         wrong_password = random_password()
 
-        self.authenticate_user_use_case_mock.should_raise = (
+        self.authenticate_user_use_case_mock.execute.side_effect = (
             PasswordVerificationException()
         )
 
