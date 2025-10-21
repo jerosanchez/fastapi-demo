@@ -109,13 +109,6 @@ class PostsRoutes:
             _report_forbidden()
         return
 
-    def _fetch_posts_with_votes_query(self, db: Session):
-        return (
-            db.query(Post, func.count(Vote.post_id).label("votes"))
-            .join(Vote, Vote.post_id == Post.id, isouter=True)
-            .group_by(Post.id)
-        )
-
     def _build_routes(self):
         self.router.add_api_route(
             "/",

@@ -25,14 +25,17 @@ class GetPostsUseCase(GetPostsUseCaseABC):
     def execute(
         self, page: int, size: int, search: str | None, db: Session
     ) -> list[PostWithVotes]:
-        query = (
+        query = self._fetch_posts_with_votes_query(db)
+        if search:
+            query = query.filter(Post.title.ilike(f"%{search}%"))
+        return query.offset((page - 1) * size).limit(size).all()
+
+    def _fetch_posts_with_votes_query(self, db: Session):
+        return (
             db.query(Post, func.count(Vote.post_id).label("votes"))
             .join(Vote, Vote.post_id == Post.id, isouter=True)
             .group_by(Post.id)
         )
-        if search:
-            query = query.filter(Post.title.ilike(f"%{search}%"))
-        return query.offset((page - 1) * size).limit(size).all()
 
 
 class CreatePostUseCaseABC(ABC):
