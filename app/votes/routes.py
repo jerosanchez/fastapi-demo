@@ -4,44 +4,42 @@ from sqlalchemy.orm import Session
 from app.core.dependencies.current_user import get_current_user
 from app.core.dependencies.database import get_db
 from app.users.models import User
-from app.votes.models import Vote
-from app.votes.schemas import VotePost
 
-router = APIRouter(prefix="/votes", tags=["Votes"])
+from .exceptions import AlreadyVotedException, VoteNotFoundException
+from .schemas import VotePost
+from .use_cases import VotesUseCaseABC
 
 
-@router.post("/", status_code=status.HTTP_204_NO_CONTENT)
-async def vote(
-    vote_data: VotePost,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    vote_query = db.query(Vote).filter(
-        Vote.post_id == str(vote_data.post_id), Vote.user_id == current_user.id
-    )
+class VoteRoutes:
+    def __init__(self, vote_use_case: VotesUseCaseABC):
+        self.vote_use_case = vote_use_case
+        self.router = APIRouter(prefix="/votes", tags=["Votes"])
+        self._build_routes()
 
-    found_vote = vote_query.first()
+    def vote(
+        self,
+        vote_data: VotePost,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+    ):
 
-    if vote_data.vote_direction:
-        if found_vote:
+        try:
+            post_id = str(vote_data.post_id)
+            vote_direction = vote_data.vote_direction
+            self.vote_use_case.vote(post_id, vote_direction, db, current_user)
+            return
+
+        except AlreadyVotedException:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"User {current_user.id} has already voted on this post",
             )
 
-        vote = Vote(post_id=str(vote_data.post_id), user_id=current_user.id)
-
-        db.add(vote)
-
-    else:
-        if not found_vote:
+        except VoteNotFoundException:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Vote does not exist",
             )
 
-        vote_query.delete(synchronize_session=False)
-
-    db.commit()
-
-    return
+    def _build_routes(self):
+        self.router.post("/", status_code=status.HTTP_204_NO_CONTENT)(self.vote)
