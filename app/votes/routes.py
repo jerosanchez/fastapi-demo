@@ -12,7 +12,7 @@ from .use_cases import VotesUseCaseABC
 
 class VoteRoutes:
     def __init__(self, vote_use_case: VotesUseCaseABC):
-        self.vote_use_case = vote_use_case
+        self._vote_use_case = vote_use_case
         self.router = APIRouter(prefix="/votes", tags=["Votes"])
         self._build_routes()
 
@@ -26,7 +26,7 @@ class VoteRoutes:
         try:
             post_id = str(vote_data.post_id)
             vote_direction = vote_data.vote_direction
-            self.vote_use_case.execute(post_id, vote_direction, db, current_user)
+            self._vote_use_case.execute(post_id, vote_direction, db, current_user)
             return
 
         except AlreadyVotedException:

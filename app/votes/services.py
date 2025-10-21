@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from sqlalchemy.orm import Session
 
 from .exceptions import AlreadyVotedException, VoteNotFoundException
-from .models import Vote
+from .repositories import VoteRepositoryABC
 
 
 class VoteServiceABC(ABC):
@@ -17,23 +17,17 @@ class VoteServiceABC(ABC):
 
 
 class VoteService(VoteServiceABC):
+    def __init__(self, vote_repository: VoteRepositoryABC):
+        self._vote_repository = vote_repository
+
     def add_vote(self, post_id: str, db: Session, current_user):
-        vote_query = db.query(Vote).filter(
-            Vote.post_id == post_id, Vote.user_id == current_user.id
-        )
-        found_vote = vote_query.first()
+        found_vote = self._vote_repository.get_vote(post_id, current_user.id, db)
         if found_vote:
             raise AlreadyVotedException()
-        vote = Vote(post_id=post_id, user_id=current_user.id)
-        db.add(vote)
-        db.commit()
+        self._vote_repository.add_vote(post_id, current_user.id, db)
 
     def remove_vote(self, post_id: str, db: Session, current_user):
-        vote_query = db.query(Vote).filter(
-            Vote.post_id == post_id, Vote.user_id == current_user.id
-        )
-        found_vote = vote_query.first()
+        found_vote = self._vote_repository.get_vote(post_id, current_user.id, db)
         if not found_vote:
             raise VoteNotFoundException()
-        vote_query.delete(synchronize_session=False)
-        db.commit()
+        self._vote_repository.remove_vote(post_id, current_user.id, db)
