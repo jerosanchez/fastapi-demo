@@ -26,7 +26,7 @@ class VoteRoutes:
         try:
             post_id = str(vote_data.post_id)
             vote_direction = vote_data.vote_direction
-            self.vote_use_case.vote(post_id, vote_direction, db, current_user)
+            self.vote_use_case.execute(post_id, vote_direction, db, current_user)
             return
 
         except AlreadyVotedException:

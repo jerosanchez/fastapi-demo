@@ -1,9 +1,11 @@
 from fastapi import APIRouter
 
 from .routes import VoteRoutes
-from .use_cases import VotesUseCaseABC, VoteUseCase
+from .services import VoteService
+from .use_cases import VoteUseCase
 
 
 def build_votes_router() -> APIRouter:
-    votes_use_case = VoteUseCase()
+    vote_service = VoteService()
+    votes_use_case = VoteUseCase(vote_service)
     return VoteRoutes(votes_use_case).router
