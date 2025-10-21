@@ -1,14 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.dependencies.current_user import get_current_user
 from app.core.dependencies.database import get_db
 from app.users.models import User
-from app.votes.models import Vote
 
-from .models import CreatePostData, Post, UpdatePostData
+from .models import CreatePostData, UpdatePostData
 from .schemas import PostCreate, PostOut, PostUpdate, PostWithVotes
 from .use_cases import (
     CreatePostUseCase,
@@ -57,14 +55,8 @@ class PostsRoutes:
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
     ):
-        create_post_data = CreatePostData(
-            title=post_data.title,
-            content=post_data.content,
-            published=post_data.published,
-            rating=post_data.rating,
-        )
         new_post = self._create_post_use_case.execute(
-            create_post_data, db, current_user
+            _build_create_post_data(post_data), db, current_user
         )
         return {"data": new_post}
 
@@ -85,14 +77,8 @@ class PostsRoutes:
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
     ):
-        update_post_data = UpdatePostData(
-            title=getattr(post_data, "title"),
-            content=getattr(post_data, "content"),
-            published=getattr(post_data, "published"),
-            rating=getattr(post_data, "rating"),
-        )
         post = self._update_post_use_case.execute(
-            post_id, update_post_data, db, current_user
+            post_id, _build_update_post_data(post_data), db, current_user
         )
         if post is None:
             _report_forbidden()
@@ -143,6 +129,24 @@ class PostsRoutes:
             status_code=status.HTTP_204_NO_CONTENT,
             methods=["DELETE"],
         )
+
+
+def _build_create_post_data(post_data: PostCreate) -> CreatePostData:
+    return CreatePostData(
+        title=getattr(post_data, "title"),
+        content=getattr(post_data, "content"),
+        published=getattr(post_data, "published"),
+        rating=getattr(post_data, "rating"),
+    )
+
+
+def _build_update_post_data(post_data: PostUpdate) -> UpdatePostData:
+    return UpdatePostData(
+        title=getattr(post_data, "title"),
+        content=getattr(post_data, "content"),
+        published=getattr(post_data, "published"),
+        rating=getattr(post_data, "rating"),
+    )
 
 
 def _report_bad_request(detail: str):

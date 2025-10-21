@@ -1,4 +1,3 @@
-# Use case ABCs and implementations for posts feature
 from abc import ABC, abstractmethod
 
 from sqlalchemy import Row, func
