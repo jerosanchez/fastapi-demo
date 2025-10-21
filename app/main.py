@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 
-from app import auth, posts, users, votes
+from . import auth, posts, users, votes
 
 app = FastAPI()
 
@@ -19,6 +21,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Avoid exposing internal DB errors to clients
+# You can still raise custom exceptions and handle specific cases
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": "Database error. Please try again later."},
+    )
+
+
+# Mount feature routers
 posts.init_service(app)
 users.init_service(app)
 auth.init_service(app)
