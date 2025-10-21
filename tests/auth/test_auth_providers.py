@@ -5,6 +5,7 @@ import pytest
 
 from app.auth.models import TokenPayload
 from app.auth.providers import JwtOAuth2TokenProvider
+from tests.shared.test_helpers import random_string, random_user_id
 
 
 class DummyCredentialsException(Exception):
@@ -13,102 +14,108 @@ class DummyCredentialsException(Exception):
 
 class TestJwtOAuth2TokenProvider:
     def setup_method(self):
-        self.payload = TokenPayload(user_id="user-123")
-        self.key = "test-secret-key"
-        self.algorithm = "HS256"
-        self.ttl = 15
-        self.expiration = 1234567890
+        self.jwt_encode_patch = patch("app.auth.providers.jwt.encode")
+        self.mock_jwt_encode = self.jwt_encode_patch.start()
+
+        self.jwt_decode_patch = patch("app.auth.providers.jwt.decode")
+        self.mock_jwt_decode = self.jwt_decode_patch.start()
+
         self.settings_patch = patch("app.auth.providers.settings")
         self.mock_settings = self.settings_patch.start()
-        self.mock_settings.oauth_hash_key = self.key
-        self.mock_settings.oauth_algorithm = self.algorithm
-        self.mock_settings.oauth_token_ttl = self.ttl
+        self.mock_settings.oauth_hash_key = "some-hash-key"
+        self.mock_settings.oauth_algorithm = "HS256"
+        self.mock_settings.oauth_token_ttl = 15
 
     def teardown_method(self):
         self.settings_patch.stop()
 
-    @patch("app.auth.providers.jwt.encode")
-    def test_create_access_token_payload_data(self, mock_jwt_encode):
+    def test_create_access_token_payload_data(self):
         """Should call jwt.encode with correct user id."""
-        mock_jwt_encode.return_value = "mocked-token"
+        payload = TokenPayload(user_id=random_user_id())
 
-        JwtOAuth2TokenProvider.create_access_token(self.payload)
+        JwtOAuth2TokenProvider.create_access_token(payload)
 
-        args, kwargs = mock_jwt_encode.call_args
+        args, kwargs = self.mock_jwt_encode.call_args
         payload_dict = args[0]
-        assert payload_dict["user_id"] == self.payload.user_id
 
-    @patch("app.auth.providers.jwt.encode")
-    def test_create_access_token_expiration_ttl(self, mock_jwt_encode):
+        assert payload_dict["user_id"] == payload.user_id
+
+    def test_create_access_token_expiration_ttl(self):
         """Should call jwt.encode with exp set to now + ttl minutes."""
-        mock_jwt_encode.return_value = "mocked-token"
+        payload = TokenPayload(user_id=random_user_id())
 
-        JwtOAuth2TokenProvider.create_access_token(self.payload)
+        JwtOAuth2TokenProvider.create_access_token(payload)
 
-        args, kwargs = mock_jwt_encode.call_args
+        args, kwargs = self.mock_jwt_encode.call_args
         payload_dict = args[0]
-        exp_dt = payload_dict["exp"]
+
+        returned_exp = payload_dict["exp"]
         now = datetime.now(timezone.utc)
-        expected_exp = now + timedelta(minutes=self.ttl)
-        # The expiration should be within a few seconds of now + ttl
-        assert abs((exp_dt - expected_exp).total_seconds()) < 5
+        ttl_in_minutes = self.mock_settings.oauth_token_ttl
+        expected_exp = now + timedelta(minutes=ttl_in_minutes)
 
-    @patch("app.auth.providers.jwt.encode")
-    def test_create_access_token_hash_key(self, mock_jwt_encode):
+        # The expiration should be within a one second of now + ttl
+        assert abs((returned_exp - expected_exp).total_seconds()) < 1
+
+    def test_create_access_token_hash_key(self):
         """Should call jwt.encode with correct hash key."""
-        mock_jwt_encode.return_value = "mocked-token"
+        payload = TokenPayload(user_id=random_user_id())
 
-        JwtOAuth2TokenProvider.create_access_token(self.payload)
+        JwtOAuth2TokenProvider.create_access_token(payload)
 
-        args, kwargs = mock_jwt_encode.call_args
-        assert args[1] == self.key
+        args, kwargs = self.mock_jwt_encode.call_args
+        assert args[1] == self.mock_settings.oauth_hash_key
 
-    @patch("app.auth.providers.jwt.encode")
-    def test_create_access_token_algorithm(self, mock_jwt_encode):
+    def test_create_access_token_algorithm(self):
         """Should call jwt.encode with correct algorithm."""
-        mock_jwt_encode.return_value = "mocked-token"
+        payload = TokenPayload(user_id=random_user_id())
 
-        JwtOAuth2TokenProvider.create_access_token(self.payload)
+        JwtOAuth2TokenProvider.create_access_token(payload)
 
-        args, kwargs = mock_jwt_encode.call_args
-        assert kwargs["algorithm"] == self.algorithm
+        args, kwargs = self.mock_jwt_encode.call_args
+        assert kwargs["algorithm"] == self.mock_settings.oauth_algorithm
 
-    @patch("app.auth.providers.jwt.decode")
-    def test_verify_access_token_happy_path(self, mock_jwt_decode):
+    def test_verify_access_token_happy_path(self):
         """Should return TokenPayload when given a valid JWT access token."""
-        mock_jwt_decode.return_value = {
-            "user_id": self.payload.user_id,
-            "exp": self.expiration,
-        }
-        token = "dummy-token"
+        user_id = random_user_id()
+        valid_token = random_string()
 
-        result = JwtOAuth2TokenProvider.verify_access_token(
-            token, DummyCredentialsException
+        self.mock_jwt_decode.return_value = {
+            "user_id": user_id,
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=1),
+        }
+
+        returned_payload = JwtOAuth2TokenProvider.verify_access_token(
+            valid_token, DummyCredentialsException
         )
 
-        assert isinstance(result, TokenPayload)
-        assert result.user_id == self.payload.user_id
+        assert returned_payload.user_id == user_id
 
-    @patch("app.auth.providers.jwt.decode")
-    def test_verify_access_token_invalid_token(self, mock_jwt_decode):
+    def test_verify_access_token_invalid_token(self):
         """Should raise requested exception if token is invalid."""
+        some_token = random_string()
+
         from jose import JWTError
 
-        mock_jwt_decode.side_effect = JWTError
-        invalid_token = "invalid.token.value"
+        self.mock_jwt_decode.side_effect = JWTError
 
         with pytest.raises(DummyCredentialsException):
             JwtOAuth2TokenProvider.verify_access_token(
-                invalid_token, DummyCredentialsException
+                some_token, DummyCredentialsException
             )
 
-    @patch("app.auth.providers.jwt.decode")
-    def test_verify_access_token_missing_user_id(self, mock_jwt_decode):
+    def test_verify_access_token_missing_user_id(self):
         """
         Should raise requested exception if user_id is missing in token payload.
         """
-        mock_jwt_decode.return_value = {"exp": self.expiration}
-        token = "dummy-token"
+        some_token = random_string()
+
+        self.mock_jwt_decode.return_value = {
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=1),
+            "user_id": None,
+        }
 
         with pytest.raises(DummyCredentialsException):
-            JwtOAuth2TokenProvider.verify_access_token(token, DummyCredentialsException)
+            JwtOAuth2TokenProvider.verify_access_token(
+                some_token, DummyCredentialsException
+            )

@@ -18,7 +18,7 @@ class User(Base):
     __table_args__ = (Index("users_email_key", "email", unique=True),)
 
 
-class NewUserData:
+class CreateUserData:
     def __init__(self, email: str, password: str):
         self.email = email
         self.password = password

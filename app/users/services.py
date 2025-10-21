@@ -3,14 +3,14 @@ from abc import ABC, abstractmethod
 from sqlalchemy.orm import Session
 
 from .exceptions import EmailAlreadyExistsException
-from .models import NewUserData, User
+from .models import CreateUserData, User
 from .repositories import UserRepositoryABC
 from .utils import hash_password
 
 
 class UserServiceABC(ABC):
     @abstractmethod
-    def create_user(self, new_user_data: NewUserData, db: Session) -> User:
+    def create_user(self, new_user_data: CreateUserData, db: Session) -> User:
         pass
 
     @abstractmethod
@@ -22,7 +22,7 @@ class UserService(UserServiceABC):
     def __init__(self, repository: UserRepositoryABC):
         self.repository = repository
 
-    def create_user(self, new_user_data: NewUserData, db: Session) -> User:
+    def create_user(self, new_user_data: CreateUserData, db: Session) -> User:
         if self.repository.get_user_by_email(db, new_user_data.email):
             raise EmailAlreadyExistsException(new_user_data.email)
 

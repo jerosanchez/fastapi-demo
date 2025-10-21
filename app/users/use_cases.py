@@ -2,13 +2,13 @@ from abc import ABC, abstractmethod
 
 from sqlalchemy.orm import Session
 
-from .models import NewUserData, User
+from .models import CreateUserData, User
 from .services import UserServiceABC
 
 
 class CreateUserUseCaseABC(ABC):
     @abstractmethod
-    def execute(self, new_user_data: NewUserData, db: Session) -> User:
+    def execute(self, new_user_data: CreateUserData, db: Session) -> User:
         pass
 
 
@@ -22,7 +22,7 @@ class CreateUserUseCase(CreateUserUseCaseABC):
     def __init__(self, service: UserServiceABC):
         self.service = service
 
-    def execute(self, new_user_data: NewUserData, db: Session) -> User:
+    def execute(self, new_user_data: CreateUserData, db: Session) -> User:
         return self.service.create_user(new_user_data, db)
 
 

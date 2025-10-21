@@ -4,10 +4,11 @@ import pytest
 from sqlalchemy.orm import Session
 
 from app.users.exceptions import EmailAlreadyExistsException
-from app.users.models import NewUserData, User
+from app.users.models import CreateUserData
 from app.users.services import UserService
-from tests.shared.helpers import (
-    make_user,
+
+from ..shared.test_helpers import (
+    make_stored_user,
     random_email,
     random_password,
     random_user_id,
@@ -16,67 +17,53 @@ from tests.shared.helpers import (
 
 class TestUserService:
     def setup_method(self):
-        self.mock_repo = Mock()
-        self.service = UserService(self.mock_repo)
+        self.user_repository_mock = Mock()
+        self.sut = UserService(self.user_repository_mock)
         self.db = Mock(spec=Session)
 
     def test_create_user_happy_path(self):
         """Should return new user when email does not exist."""
-        new_user_request_data = make_new_user_data()
-        fake_hashed_password = random_password()
-        expected_user = User(
-            email=new_user_request_data.email,
-            password=fake_hashed_password,
-            is_active=True,
-        )
+        email = random_email()
+        password = random_password()
+        create_user_request_data = CreateUserData(email=email, password=password)
 
-        self.mock_repo.get_user_by_email.return_value = None
-        self.mock_repo.add_user.return_value = expected_user
+        new_stored_user = make_stored_user(email=email, password=password)
 
-        created_user = self.service.create_user(new_user_request_data, self.db)
+        self.user_repository_mock.get_user_by_email.return_value = None
+        self.user_repository_mock.add_user.return_value = new_stored_user
 
-        assert created_user == expected_user
+        returned_user = self.sut.create_user(create_user_request_data, self.db)
+
+        assert returned_user == new_stored_user
 
     def test_create_user_email_exists(self):
         """Should raise EmailAlreadyExistsException if email already exists."""
-        new_user_request_data = make_new_user_data()
-        fake_hashed_password = random_password()
-        stored_user_with_same_email = User(
-            email=new_user_request_data.email,  # not necessary, for doc purposes
-            password=fake_hashed_password,
-            is_active=True,
+        email = random_email()
+        password = random_password()
+        create_user_request_data = CreateUserData(email=email, password=password)
+        stored_user_with_same_email = make_stored_user(email=email)
+
+        self.user_repository_mock.get_user_by_email.return_value = (
+            stored_user_with_same_email
         )
 
-        self.mock_repo.get_user_by_email.return_value = stored_user_with_same_email
-
         with pytest.raises(EmailAlreadyExistsException):
-            self.service.create_user(new_user_request_data, self.db)
+            self.sut.create_user(create_user_request_data, self.db)
 
     def test_get_user_by_id_happy_path(self):
         """Should return user when user_id exists."""
-        stored_user = make_user()
+        stored_user = make_stored_user()
 
-        self.mock_repo.get_user_by_id.return_value = stored_user
+        self.user_repository_mock.get_user_by_id.return_value = stored_user
 
-        retrieved_user = self.service.get_user_by_id(str(stored_user.id), self.db)
+        returned_user = self.sut.get_user_by_id(str(stored_user.id), self.db)
 
-        assert retrieved_user == stored_user
+        assert returned_user == stored_user
 
     def test_get_user_by_id_not_found(self):
         """Should return None when user_id does not exist."""
-        user_id = random_user_id()
+        self.user_repository_mock.get_user_by_id.return_value = None
 
-        self.mock_repo.get_user_by_id.return_value = None
-
-        user = self.service.get_user_by_id(user_id, self.db)
+        user = self.sut.get_user_by_id(random_user_id(), self.db)
 
         assert user is None
-
-
-# === Helper functions ===
-
-
-def make_new_user_data(
-    email: str = random_email(), password: str = random_password()
-) -> NewUserData:
-    return NewUserData(email=email, password=password)
