@@ -10,10 +10,30 @@ from app.votes.models import Vote
 
 from .models import Post
 from .schemas import PostCreate, PostOut, PostUpdate, PostWithVotes
+from .use_cases import (
+    CreatePostUseCase,
+    DeletePostUseCase,
+    GetPostByIdUseCase,
+    GetPostsUseCase,
+    UpdatePostUseCase,
+)
 
 
 class PostsRoutes:
-    def __init__(self):
+    def __init__(
+        self,
+        get_posts_use_case: GetPostsUseCase,
+        create_post_use_case: CreatePostUseCase,
+        get_post_by_id_use_case: GetPostByIdUseCase,
+        update_post_use_case: UpdatePostUseCase,
+        delete_post_use_case: DeletePostUseCase,
+    ):
+        self._get_posts_use_case = get_posts_use_case
+        self._create_post_use_case = create_post_use_case
+        self._get_post_by_id_use_case = get_post_by_id_use_case
+        self._update_post_use_case = update_post_use_case
+        self._delete_post_use_case = delete_post_use_case
+
         self.router = APIRouter(prefix="/posts", tags=["Posts"])
         self._build_routes()
 
@@ -28,10 +48,8 @@ class PostsRoutes:
             _report_bad_request("Page and size must be positive integers")
         if size > settings.max_page_size:
             _report_bad_request(f"Size must not exceed {settings.max_page_size}")
-        query = self._fetch_posts_with_votes_query(db)
-        if search:
-            query = query.filter(Post.title.ilike(f"%{search}%"))
-        return {"data": query.offset((page - 1) * size).limit(size).all()}
+        posts = self._get_posts_use_case.execute(page, size, search, db)
+        return {"data": posts}
 
     def create_post(
         self,
@@ -39,10 +57,7 @@ class PostsRoutes:
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
     ):
-        new_post = Post(owner_id=current_user.id, **post_data.model_dump())
-        db.add(new_post)
-        db.commit()
-        db.refresh(new_post)
+        new_post = self._create_post_use_case.execute(post_data, db, current_user)
         return {"data": new_post}
 
     def get_post_by_id(
@@ -50,7 +65,7 @@ class PostsRoutes:
         post_id: str,
         db: Session = Depends(get_db),
     ):
-        post = self._fetch_posts_with_votes_query(db).filter(Post.id == post_id).first()
+        post = self._get_post_by_id_use_case.execute(post_id, db)
         if not post:
             _report_not_found(post_id)
         return {"data": post}
@@ -62,19 +77,9 @@ class PostsRoutes:
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
     ):
-        post_query = db.query(Post).filter(Post.id == post_id)
-        post = post_query.first()
-        if not post:
-            _report_not_found(post_id)
-        if getattr(post, "owner_id", None) != current_user.id:
+        post = self._update_post_use_case.execute(post_id, post_data, db, current_user)
+        if post is None:
             _report_forbidden()
-        update_data = {
-            getattr(Post, k): v
-            for k, v in post_data.model_dump(exclude_unset=True).items()
-        }
-        post_query.update(update_data)
-        db.commit()
-        db.refresh(post)
         return {"data": post}
 
     def delete_post(
@@ -83,14 +88,9 @@ class PostsRoutes:
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
     ) -> None:
-        post_query = db.query(Post).filter(Post.id == post_id)
-        post = post_query.first()
-        if not post:
-            _report_not_found(post_id)
-        if getattr(post, "owner_id", None) != current_user.id:
+        result = self._delete_post_use_case.execute(post_id, db, current_user)
+        if not result:
             _report_forbidden()
-        post_query.delete()
-        db.commit()
         return
 
     def _fetch_posts_with_votes_query(self, db: Session):
