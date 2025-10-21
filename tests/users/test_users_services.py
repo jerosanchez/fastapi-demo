@@ -13,50 +13,80 @@ class TestUserService:
         self.mock_repo = Mock()
         self.service = UserService(self.mock_repo)
         self.db = Mock(spec=Session)
-        self.new_email = "new@example.com"
-        self.existing_email = "existing@example.com"
-        self.password = "password"
-        self.hashed_password = "hashed_password"
-        self.user_id = "user-123"
 
     def test_create_user_happy_path(self):
         """Should return new user when email does not exist."""
-        new_user_data = NewUserData(email=self.new_email, password=self.password)
-        self.mock_repo.get_user_by_email.return_value = None
+        new_user_request_data = _make_new_user_data()
+        fake_hashed_password = _random_string()
         expected_user = User(
-            email=self.new_email, password=self.hashed_password, is_active=True
+            email=new_user_request_data.email,
+            password=fake_hashed_password,
+            is_active=True,
         )
+
+        self.mock_repo.get_user_by_email.return_value = None
         self.mock_repo.add_user.return_value = expected_user
 
-        created_user = self.service.create_user(new_user_data, self.db)
+        created_user = self.service.create_user(new_user_request_data, self.db)
 
         assert created_user == expected_user
 
     def test_create_user_email_exists(self):
         """Should raise EmailAlreadyExistsException if email already exists."""
-        new_user_data = NewUserData(email=self.existing_email, password=self.password)
-        self.mock_repo.get_user_by_email.return_value = User(
-            email=self.existing_email, password=self.hashed_password, is_active=True
+        new_user_request_data = _make_new_user_data()
+        fake_hashed_password = _random_string()
+        stored_user_with_same_email = User(
+            email=new_user_request_data.email,  # not necessary, for doc purposes
+            password=fake_hashed_password,
+            is_active=True,
         )
 
+        self.mock_repo.get_user_by_email.return_value = stored_user_with_same_email
+
         with pytest.raises(EmailAlreadyExistsException):
-            self.service.create_user(new_user_data, self.db)
+            self.service.create_user(new_user_request_data, self.db)
 
     def test_get_user_by_id_happy_path(self):
         """Should return user when user_id exists."""
-        expected_user = User(
-            email=self.existing_email, password=self.hashed_password, is_active=True
-        )
-        self.mock_repo.get_user_by_id.return_value = expected_user
+        stored_user = _make_user()
+        user_id = _random_string()
 
-        retrieved_user = self.service.get_user_by_id(self.user_id, self.db)
+        self.mock_repo.get_user_by_id.return_value = stored_user
 
-        assert retrieved_user == expected_user
+        retrieved_user = self.service.get_user_by_id(user_id, self.db)
+
+        assert retrieved_user == stored_user
 
     def test_get_user_by_id_not_found(self):
         """Should return None when user_id does not exist."""
+        user_id = _random_string()
+
         self.mock_repo.get_user_by_id.return_value = None
 
-        user = self.service.get_user_by_id(self.user_id, self.db)
+        user = self.service.get_user_by_id(user_id, self.db)
 
         assert user is None
+
+
+# === Helper methods
+
+
+def _random_string(length: int = 6) -> str:
+    import random
+    import string
+
+    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
+
+
+def _make_new_user_data(
+    email: str = f"{_random_string()}@example.com", password: str = _random_string()
+) -> NewUserData:
+    return NewUserData(email=email, password=password)
+
+
+def _make_user(
+    email: str = f"{_random_string()}@example.com",
+    password: str = _random_string(),
+    is_active: bool = True,
+) -> User:
+    return User(email=email, password=password, is_active=is_active)
