@@ -8,7 +8,7 @@ from app.core.dependencies.database import get_db
 from app.users.models import User
 from app.votes.models import Vote
 
-from .models import Post
+from .models import CreatePostData, Post, UpdatePostData
 from .schemas import PostCreate, PostOut, PostUpdate, PostWithVotes
 from .use_cases import (
     CreatePostUseCase,
@@ -57,7 +57,15 @@ class PostsRoutes:
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
     ):
-        new_post = self._create_post_use_case.execute(post_data, db, current_user)
+        create_post_data = CreatePostData(
+            title=post_data.title,
+            content=post_data.content,
+            published=post_data.published,
+            rating=post_data.rating,
+        )
+        new_post = self._create_post_use_case.execute(
+            create_post_data, db, current_user
+        )
         return {"data": new_post}
 
     def get_post_by_id(
@@ -77,7 +85,15 @@ class PostsRoutes:
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
     ):
-        post = self._update_post_use_case.execute(post_id, post_data, db, current_user)
+        update_post_data = UpdatePostData(
+            title=getattr(post_data, "title"),
+            content=getattr(post_data, "content"),
+            published=getattr(post_data, "published"),
+            rating=getattr(post_data, "rating"),
+        )
+        post = self._update_post_use_case.execute(
+            post_id, update_post_data, db, current_user
+        )
         if post is None:
             _report_forbidden()
         return {"data": post}

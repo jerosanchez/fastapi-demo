@@ -11,7 +11,9 @@ class Post(Base):
     __tablename__ = "posts"
 
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
-    owner_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    owner_id = Column(
+        String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     title = Column(String, nullable=False)
     content = Column(String, nullable=False)
     published = Column(Boolean, server_default="TRUE")
@@ -20,3 +22,31 @@ class Post(Base):
 
     # Retrieve the user who owns this post
     owner = relationship("User")
+
+
+class CreatePostData:
+    def __init__(
+        self,
+        title: str,
+        content: str,
+        published: bool = True,
+        rating: int | None = None,
+    ):
+        self.title = title
+        self.content = content
+        self.published = published
+        self.rating = rating
+
+
+class UpdatePostData:
+    def __init__(
+        self,
+        title: str,
+        content: str,
+        published: bool = True,
+        rating: int | None = None,
+    ):
+        self.title = title
+        self.content = content
+        self.published = published
+        self.rating = rating
