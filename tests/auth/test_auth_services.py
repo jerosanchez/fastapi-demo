@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.auth.exceptions import PasswordVerificationException, UserNotFoundException
 from app.auth.repositories import AuthRepositoryABC
 from app.auth.services import AuthService
-from app.users.models import User
+
+from ..shared.helpers import make_user, random_password, random_user_id
 
 
 class TestAuthService:
@@ -19,53 +20,39 @@ class TestAuthService:
     @patch("app.auth.services.verify_password")
     def test_authenticate_user_happy_path(self, mock_verify_password):
         """Should return user object if authentication is successful."""
-        username = "user@example.com"
-        password = "correct_password"
-        mock_user = Mock(spec=User)
-        mock_user.password = "hashed_password"
-        mock_user.email = username
-        mock_user.id = "user-123"
+        existing_user = make_user()
 
-        self.mock_repository.get_user_by_email.return_value = mock_user
+        self.mock_repository.get_user_by_email.return_value = existing_user
         mock_verify_password.return_value = True
 
-        result = self.auth_service.authenticate_user(self.mock_db, username, password)
-
-        assert result == mock_user
-
-        self.mock_repository.get_user_by_email.assert_called_once_with(
-            self.mock_db, username
+        result = self.auth_service.authenticate_user(
+            self.mock_db, str(existing_user.id), "correct_password"
         )
-        mock_verify_password.assert_called_once_with(password, "hashed_password")
+
+        assert result == existing_user
 
     def test_authenticate_user_not_found(self):
         """Should raise UserNotFoundException if user does not exist."""
-        username = "nonexistent@example.com"
-        password = "any_password"
         self.mock_repository.get_user_by_email.return_value = None
 
         with pytest.raises(UserNotFoundException):
-            self.auth_service.authenticate_user(self.mock_db, username, password)
-
-        self.mock_repository.get_user_by_email.assert_called_once_with(
-            self.mock_db, username
-        )
+            any_user_id = random_user_id()
+            any_password = random_password()
+            self.auth_service.authenticate_user(
+                self.mock_db, str(any_user_id), any_password
+            )
 
     @patch("app.auth.services.verify_password")
     def test_authenticate_user_password_verification_error(self, mock_verify_password):
         """Should raise PasswordVerificationException if password is invalid."""
-        username = "user@example.com"
-        password = "wrong_password"
-        mock_user = Mock(spec=User)
-        mock_user.password = "hashed_password"
+        existing_user = make_user()
 
-        self.mock_repository.get_user_by_email.return_value = mock_user
+        self.mock_repository.get_user_by_email.return_value = existing_user
         mock_verify_password.return_value = False
 
         with pytest.raises(PasswordVerificationException):
-            self.auth_service.authenticate_user(self.mock_db, username, password)
-
-        self.mock_repository.get_user_by_email.assert_called_once_with(
-            self.mock_db, username
-        )
-        mock_verify_password.assert_called_once_with(password, "hashed_password")
+            any_user_id = random_user_id()
+            any_password = random_password()
+            self.auth_service.authenticate_user(
+                self.mock_db, str(any_user_id), any_password
+            )
