@@ -22,8 +22,7 @@ app.add_middleware(
 )
 
 
-# Avoid exposing internal DB errors to clients
-# You can still raise custom exceptions and handle specific cases
+# As per ADR-0004: centralized exception handling for infrastructure errors
 @app.exception_handler(SQLAlchemyError)
 async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
     return JSONResponse(
