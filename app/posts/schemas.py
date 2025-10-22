@@ -18,8 +18,7 @@ class PostOut(PostSchemaBase):
     created_at: datetime
     owner: UserOut
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class PostWithVotes(BaseModel):
