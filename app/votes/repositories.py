@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 from sqlalchemy.orm import Session
 
+from app.posts.models import Post
+
 from .models import Vote
 
 
@@ -40,3 +42,14 @@ class VoteRepository(VoteRepositoryABC):
             synchronize_session=False
         )
         db.commit()
+
+
+class PostRepositoryABC(ABC):
+    @abstractmethod
+    def get_post(self, post_id: str, db: Session) -> Post | None:
+        pass
+
+
+class PostRepository(PostRepositoryABC):
+    def get_post(self, post_id: str, db: Session) -> Post | None:
+        return db.query(Post).filter(Post.id == post_id).first()

@@ -4,11 +4,13 @@
 ### Get all posts
 GET http://localhost:8000/posts
 Accept: application/json
+Authorization: Bearer {{JWT}}
 
 ### Filter posts
 GET http://localhost:8000/posts?page=1&size=10
 Accept: application/json
-
+Authorization: Bearer {{JWT}}
+    
 ### Create new post
 POST http://localhost:8000/posts
 Content-Type: application/json

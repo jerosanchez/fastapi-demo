@@ -4,3 +4,11 @@ class AlreadyVotedException(Exception):
 
 class VoteNotFoundException(Exception):
     pass
+
+
+class ForbiddenVoteException(Exception):
+    pass
+
+
+class PostNotFoundException(Exception):
+    pass

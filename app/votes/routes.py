@@ -3,9 +3,14 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies.current_user import get_current_user
 from app.core.dependencies.database import get_db
+from app.posts.exceptions import ForbiddenException
 from app.users.models import User
 
-from .exceptions import AlreadyVotedException, VoteNotFoundException
+from .exceptions import (
+    AlreadyVotedException,
+    PostNotFoundException,
+    VoteNotFoundException,
+)
 from .schemas import VotePost
 from .use_cases import VotesUseCaseABC
 
@@ -29,10 +34,22 @@ class VoteRoutes:
             self._vote_use_case.execute(post_id, vote_direction, db, current_user)
             return
 
+        except PostNotFoundException:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Post does not exist",
+            )
+
+        except ForbiddenException:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not allowed to vote on this post",
+            )
+
         except AlreadyVotedException:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"User {current_user.id} has already voted on this post",
+                detail="User has already voted on this post",
             )
 
         except VoteNotFoundException:
