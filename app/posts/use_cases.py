@@ -12,7 +12,7 @@ from .services import PostServiceABC
 class GetPostsUseCaseABC(ABC):
     @abstractmethod
     def execute(
-        self, page: int, size: int, search: str | None, db: Session
+        self, page: int, size: int, search: str | None, db: Session, current_user: User
     ) -> Sequence[tuple[Post, int]]:
         pass
 
@@ -22,9 +22,9 @@ class GetPostsUseCase(GetPostsUseCaseABC):
         self._service = service
 
     def execute(
-        self, page: int, size: int, search: str | None, db: Session
+        self, page: int, size: int, search: str | None, db: Session, current_user: User
     ) -> Sequence[tuple[Post, int]]:
-        return self._service.get_posts(page, size, search, db)
+        return self._service.get_posts(page, size, search, db, current_user)
 
 
 class CreatePostUseCaseABC(ABC):
@@ -47,7 +47,7 @@ class CreatePostUseCase(CreatePostUseCaseABC):
 
 class GetPostByIdUseCaseABC(ABC):
     @abstractmethod
-    def execute(self, post_id: str, db: Session) -> Post | None:
+    def execute(self, post_id: str, db: Session, current_user: User) -> Post | None:
         pass
 
 
@@ -55,8 +55,8 @@ class GetPostByIdUseCase(GetPostByIdUseCaseABC):
     def __init__(self, service: PostServiceABC):
         self._service = service
 
-    def execute(self, post_id: str, db: Session) -> Post | None:
-        return self._service.get_post_by_id(post_id, db)
+    def execute(self, post_id: str, db: Session, current_user: User) -> Post | None:
+        return self._service.get_post_by_id(post_id, db, current_user)
 
 
 class UpdatePostUseCaseABC(ABC):

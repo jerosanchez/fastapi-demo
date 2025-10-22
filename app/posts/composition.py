@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from .policies import PostPolicy
 from .repositories import PostRepository
 from .routes import PostsRoutes
 from .services import PostService
@@ -14,7 +15,8 @@ from .use_cases import (
 
 def build_posts_router() -> APIRouter:
     post_repository = PostRepository()
-    post_service = PostService(post_repository)
+    post_policy = PostPolicy()
+    post_service = PostService(post_repository, post_policy)
     get_posts_use_case = GetPostsUseCase(post_service)
     create_post_use_case = CreatePostUseCase(post_service)
     get_post_by_id_use_case = GetPostByIdUseCase(post_service)

@@ -42,12 +42,13 @@ class PostsRoutes:
         size: int = settings.default_page_size,
         search: str | None = None,
         db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
     ):
         if page < 1 or size < 1:
             _report_bad_request("Page and size must be positive integers")
         if size > settings.max_page_size:
             _report_bad_request(f"Size must not exceed {settings.max_page_size}")
-        posts = self._get_posts_use_case.execute(page, size, search, db)
+        posts = self._get_posts_use_case.execute(page, size, search, db, current_user)
         response_data = [
             PostWithVotes(Post=PostOut.model_validate(post), votes=votes)
             for post, votes in posts
@@ -69,8 +70,9 @@ class PostsRoutes:
         self,
         post_id: str,
         db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
     ):
-        post = self._get_post_by_id_use_case.execute(post_id, db)
+        post = self._get_post_by_id_use_case.execute(post_id, db, current_user)
         if not post:
             _report_not_found(post_id)
         post_out = PostOut.model_validate(post)
