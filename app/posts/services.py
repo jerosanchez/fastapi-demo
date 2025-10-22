@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.users.models import User
 
+from .exceptions import ForbiddenException
 from .models import CreatePostData, Post, UpdatePostData
 from .repositories import PostRepositoryABC
 
@@ -65,15 +66,18 @@ class PostService(PostServiceABC):
         self, post_id: str, post_data: UpdatePostData, db: Session, current_user: User
     ) -> Post | None:
         post = self._post_repository.get_post_by_id(post_id, db)
-        if not post or getattr(post, "owner_id", None) != current_user.id:
+        if not post:
             return None
+        self._ensure_owner(post, current_user)
         update_data = self._build_update_data(post_data)
         return self._post_repository.update_post(post, update_data, db)
 
     def delete_post(self, post_id: str, db: Session, current_user: User) -> None:
         post = self._post_repository.get_post_by_id(post_id, db)
-        if post and getattr(post, "owner_id", None) == current_user.id:
-            self._post_repository.delete_post(post, db)
+        if not post:
+            return None
+        self._ensure_owner(post, current_user)
+        self._post_repository.delete_post(post, db)
         return None
 
     def _build_update_data(self, post_data: UpdatePostData):
@@ -87,3 +91,7 @@ class PostService(PostServiceABC):
         if post_data.rating is not None:
             update_data[getattr(Post, "rating")] = post_data.rating
         return update_data
+
+    def _ensure_owner(self, post: Post, current_user: User):
+        if getattr(post, "owner_id", None) != current_user.id:
+            raise ForbiddenException()

@@ -6,6 +6,7 @@ from app.core.dependencies.current_user import get_current_user
 from app.core.dependencies.database import get_db
 from app.users.models import User
 
+from .exceptions import ForbiddenException
 from .models import CreatePostData, UpdatePostData
 from .schemas import PostCreate, PostOut, PostUpdate, PostWithVotes
 from .use_cases import (
@@ -82,12 +83,17 @@ class PostsRoutes:
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
     ):
-        post = self._update_post_use_case.execute(
-            post_id, _build_update_post_data(post_data), db, current_user
-        )
-        if post is None:
+        try:
+            post = self._update_post_use_case.execute(
+                post_id, _build_update_post_data(post_data), db, current_user
+            )
+            if post is None:
+                _report_not_found(post_id)
+
+            return {"data": post}
+
+        except ForbiddenException:
             _report_forbidden()
-        return {"data": post}
 
     def delete_post(
         self,
@@ -95,10 +101,15 @@ class PostsRoutes:
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
     ) -> None:
-        result = self._delete_post_use_case.execute(post_id, db, current_user)
-        if not result:
+        try:
+            result = self._delete_post_use_case.execute(post_id, db, current_user)
+            if result is None:
+                _report_not_found(post_id)
+
+            return
+
+        except ForbiddenException:
             _report_forbidden()
-        return
 
     def _build_routes(self):
         self.router.add_api_route(

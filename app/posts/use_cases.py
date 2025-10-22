@@ -1,16 +1,12 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
-from sqlalchemy import Row
 from sqlalchemy.orm import Session
 
 from app.users.models import User
 
 from .models import CreatePostData, Post, UpdatePostData
 from .services import PostServiceABC
-
-# Type hint alias for a row containing a Post and its vote count
-PostWithVotes = Row[tuple[Post, int]]
 
 
 class GetPostsUseCaseABC(ABC):
