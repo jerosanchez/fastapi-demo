@@ -1,17 +1,19 @@
 from abc import ABC, abstractmethod
+from typing import Sequence
 
 from sqlalchemy.orm import Session
 
 from app.users.models import User
 
 from .models import CreatePostData, Post, UpdatePostData
+from .repositories import PostRepositoryABC
 
 
 class PostServiceABC(ABC):
     @abstractmethod
     def get_posts(
         self, page: int, size: int, search: str | None, db: Session
-    ) -> list[Post]:
+    ) -> Sequence[tuple[Post, int]]:
         pass
 
     @abstractmethod
@@ -31,18 +33,18 @@ class PostServiceABC(ABC):
         pass
 
     @abstractmethod
-    def delete_post(self, post_id: str, db: Session, current_user: User) -> bool:
+    def delete_post(self, post_id: str, db: Session, current_user: User) -> None:
         pass
 
 
 class PostService(PostServiceABC):
+    def __init__(self, post_repository: PostRepositoryABC):
+        self._post_repository = post_repository
+
     def get_posts(
         self, page: int, size: int, search: str | None, db: Session
-    ) -> list[Post]:
-        query = db.query(Post)
-        if search:
-            query = query.filter(Post.title.ilike(f"%{search}%"))
-        return query.offset((page - 1) * size).limit(size).all()
+    ) -> Sequence[tuple[Post, int]]:
+        return self._post_repository.get_posts(page, size, search, db)
 
     def create_post(
         self, post_data: CreatePostData, db: Session, current_user: User
@@ -54,35 +56,25 @@ class PostService(PostServiceABC):
             published=post_data.published,
             rating=post_data.rating,
         )
-        db.add(new_post)
-        db.commit()
-        db.refresh(new_post)
-        return new_post
+        return self._post_repository.create_post(new_post, db)
 
     def get_post_by_id(self, post_id: str, db: Session) -> Post | None:
-        return db.query(Post).filter(Post.id == post_id).first()
+        return self._post_repository.get_post_by_id(post_id, db)
 
     def update_post(
         self, post_id: str, post_data: UpdatePostData, db: Session, current_user: User
     ) -> Post | None:
-        post_query = db.query(Post).filter(Post.id == post_id)
-        post = post_query.first()
-        if getattr(post, "owner_id", None) != current_user.id:
+        post = self._post_repository.get_post_by_id(post_id, db)
+        if not post or getattr(post, "owner_id", None) != current_user.id:
             return None
         update_data = self._build_update_data(post_data)
-        post_query.update(update_data)
-        db.commit()
-        db.refresh(post)
-        return post
+        return self._post_repository.update_post(post, update_data, db)
 
-    def delete_post(self, post_id: str, db: Session, current_user: User) -> bool:
-        post_query = db.query(Post).filter(Post.id == post_id)
-        post = post_query.first()
-        if getattr(post, "owner_id", None) != current_user.id:
-            return False
-        post_query.delete()
-        db.commit()
-        return True
+    def delete_post(self, post_id: str, db: Session, current_user: User) -> None:
+        post = self._post_repository.get_post_by_id(post_id, db)
+        if post and getattr(post, "owner_id", None) == current_user.id:
+            self._post_repository.delete_post(post, db)
+        return None
 
     def _build_update_data(self, post_data: UpdatePostData):
         update_data = {}

@@ -47,7 +47,11 @@ class PostsRoutes:
         if size > settings.max_page_size:
             _report_bad_request(f"Size must not exceed {settings.max_page_size}")
         posts = self._get_posts_use_case.execute(page, size, search, db)
-        return {"data": posts}
+        response_data = [
+            PostWithVotes(Post=PostOut.model_validate(post), votes=votes)
+            for post, votes in posts
+        ]
+        return {"data": response_data}
 
     def create_post(
         self,
@@ -68,7 +72,8 @@ class PostsRoutes:
         post = self._get_post_by_id_use_case.execute(post_id, db)
         if not post:
             _report_not_found(post_id)
-        return {"data": post}
+        post_out = PostOut.model_validate(post)
+        return {"data": post_out}
 
     def update_post(
         self,
@@ -112,7 +117,7 @@ class PostsRoutes:
         self.router.add_api_route(
             "/{post_id}",
             self.get_post_by_id,
-            response_model=dict[str, PostWithVotes],
+            response_model=dict[str, PostOut],
             methods=["GET"],
         )
         self.router.add_api_route(
