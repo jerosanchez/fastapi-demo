@@ -44,7 +44,7 @@ Each feature contains:
 - **Naming**: Use clear, descriptive names for files and classes matching their roles.
 - **Isolation**: Keep feature logic self-contained; avoid cross-feature imports except via well-defined interfaces.
 - **Extensibility**: Add new features by replicating the established folder and file structure.
-- **Testing**: Organize tests to mirror the feature structure for clarity.
+- **Testing**: See [testing.md](testing.md) for comprehensive testing guidelines.
 
 ## Purpose
 

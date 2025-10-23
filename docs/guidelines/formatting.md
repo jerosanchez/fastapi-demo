@@ -89,10 +89,7 @@ These rules ensure code consistency and readability for all contributors, includ
 
 ## Testing
 
-- Write unit tests for all public functions and classes.
-- Use descriptive test names.
-- Keep tests isolated and independent.
-- Add a comment to each test starting with `Should...` explaining the expected behaviour or result.
+See [testing.md](testing.md) for comprehensive testing guidelines.
 
 ---
 

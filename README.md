@@ -36,4 +36,6 @@ We keep track of future tasks and improvement ideas in [docs/TODO.md](docs/TODO.
 
 ## AI Agent Guidelines
 
-For AI agents (e.g., GitHub Copilot), see [docs/guidelines/ai-agent.md](docs/guidelines/ai-agent.md) for instructions and project-specific rules. This ensures all generated code and suggestions follow our conventions and architecture.
+For AI agents (e.g., GitHub Copilot), see [docs/guidelines/ai-agent.md](docs/guidelines/ai-agent.md) for instructions and project-specific rules.
+
+This ensures all generated code and suggestions follow our conventions and architecture.

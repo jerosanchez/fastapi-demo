@@ -18,7 +18,7 @@ Instructions for AI agents (e.g., GitHub Copilot) to ensure generated code and s
 ## Code Generation
 - Place new files in the appropriate feature folder.
 - Use the same structure as existing features.
-- Add docstrings and comments as per guidelines.
+- Add/Do not add docstrings and comments as per guidelines.
 - After each code generation or changes, remove any unused dependencies signaled by the linter.
 
 ## Limitations
@@ -32,11 +32,21 @@ Instructions for AI agents (e.g., GitHub Copilot) to ensure generated code and s
 
 ## References
 - See [ADRs](../adr/) for architectural decisions.
+
 - See [architecture.md](architecture.md) for architecture guidelines.
 - See [design.md](design.md) for general design rules.
-- See [routers.md](routers.md) for router design.
-- See [use-cases.md](use-cases.md) for use case guidelines.
-- See [services.md](services.md) for service layer rules.
-- See [repositories.md](repositories.md) for repository guidelines.
-- See [testing.md](testing.md) for unit test rules.
 - See [formatting.md](formatting.md) for code formatting standards.
+- See [testing.md](testing.md) for testing guidelines.
+
+- See [composition.md](composition.md) for root composition guidelines. 
+
+- See [routers.md](routers.md) for router layer guidelines.
+- See [use-cases.md](use-cases.md) for use cases layer guidelines.
+- See [services.md](services.md) for service layer guidelines.
+- See [repositories.md](repositories.md) for repository layer guidelines.
+- See [policies.md](policies.md) for policies guidelines.
+
+- See [models.md](models.md) for domain models guidelines.
+- See [schemas.md](schemas.md) for DTOs/schemas guidelines.
+
+- See [core.md](core.md) for cross-cutting concerns guidelines.

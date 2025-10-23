@@ -55,8 +55,7 @@ def is_superuser(user):
 
 ## Testing
 
-- Write unit tests for each policy to verify correct behavior under different scenarios.
-- Test policies with various user roles and resource states.
+See [testing.md](testing.md) for comprehensive testing guidelines.
 
 ## Updates
 

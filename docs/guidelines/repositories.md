@@ -63,7 +63,7 @@ class PostRepository:
 
 ## Testing
 
-- Usually there's no need to test repositories, since they contain pure DB access operations without logic.
+See [testing.md](testing.md) for comprehensive testing guidelines.
 
 ## Updates
 

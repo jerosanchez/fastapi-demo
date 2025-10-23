@@ -28,7 +28,8 @@ Each file serves a distinct purpose as described there. Replicate this structure
 - Model domain concepts (e.g., `Post`, `Author`) in `models.py`.
 - Use clear, descriptive names and keep models focused on persistence concerns.
 - Represent API contracts and validation logic in `schemas.py`.
-- Define operation-specific domain models (e.g., `CreatePostData`, `UpdatePostData`) in `models.py`.
+- Define operation-specific DTOs (e.g., `CreatePostData`, `UpdatePostData`) in a separate file (e.g., `dtos.py`) within each feature folder.
+- Maintain a clear separation between API schemas (`schemas.py`), operation-specific DTOs (`dtos.py`), and domain models (`models.py`) to improve clarity, maintainability, and prevent accidental coupling between layers.
 
 ---
 
@@ -72,6 +73,7 @@ Each file serves a distinct purpose as described there. Replicate this structure
 - Record significant design choices and trade-offs in [Architecture Decision Records (ADRs)](../adr/).
 - In particular, document any non-standard patterns or exceptions in ADRs.
 - Reference ADRs in code comments or documentation where relevant.
+- Follow the [Documentation Guidelines](documentation.md) for standards on structure, clarity, and maintenance of all design-related documentation.
 
 ---
 
@@ -90,6 +92,12 @@ Each file serves a distinct purpose as described there. Replicate this structure
 - In particular, avoid obvious comments, explain convoluted parts in detail.
 - Look to improve readability by extracting blocks of code into private helper methods or functions.
 - Organize tests to mirror the feature structure.
+
+---
+
+## Testing
+
+See [testing.md](testing.md) for comprehensive testing guidelines.
 
 ---
 

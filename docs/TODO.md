@@ -8,6 +8,11 @@ Each item includes a rationale to help with evaluation and prioritization.
 
 ## TO-DOs
 
+### Add key specs under `docs/specs`
+
+**Rationale:**  
+Documenting specifications such as functional requirements, system architecture, and entity-relationship diagrams in `docs/specs` will provide clear guidance for development, improve onboarding, and ensure alignment on system goals and design decisions.
+
 ### Sanitize post contents before saving or displaying
 
 **Rationale:**  
@@ -17,6 +22,26 @@ Unsanitized content can lead to security vulnerabilities such as cross-site scri
 
 **Rationale:**  
 Logging is essential for monitoring application behavior, diagnosing issues, and auditing actions. Implementing structured logging across all layers will improve maintainability, facilitate debugging, and help with compliance and security reviews.
+
+### Document endpoints for better API docs
+
+**Rationale:**  
+Providing summaries and descriptions for API endpoints improves the generated OpenAPI documentation, making it easier for developers and consumers to understand the API's capabilities and usage.
+
+### Implement key integration tests
+
+**Rationale:**  
+Integration tests verify that different components of the application work together as expected. Implementing key integration tests will help catch issues that unit tests may miss, improve reliability, and ensure that critical user flows function correctly.
+
+### Refactor test function names to include expected behaviour
+
+**Rationale:**  
+Using descriptive test function names that follow the pattern `test_<action>_should_<expected_result>` improves clarity and maintainability. It makes the expected behavior of each test explicit and aligns with common best practices in the testing community.
+
+### Separate DTOs from domain models
+
+**Rationale:**  
+Separating DTOs (Data Transfer Objects) from domain models improves code organization, clarity, and maintainability. It helps prevent accidental coupling between layers and makes it easier to manage changes as the codebase grows. Move DTOs such as `CreatePostData` and `UpdatePostData` from `models.py` to a dedicated file (e.g., `dtos.py`).
 
 ---
 
